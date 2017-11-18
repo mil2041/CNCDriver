@@ -1,42 +1,30 @@
-## CompositeDriver
+## CNCDriver
 
 ### Overview
-CompositeDriver combined mutation recurrence and functional impact to identify coding and non-coding cancer drivers
+CNCDriver combined mutation recurrence and functional impact to identify coding and non-coding cancer drivers
 
 ### Version notes
 
 
-* CompositeDriver (version 0.2) supports SNV coding and non-coding drivers  
-* CompositeDriver (version 0.1) supports SNV coding drivers   
+* CNCDriver (version 0.1) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
 
 
 
 
 ### Installation
-User will need to install devtools in R for running CompositeDriver package
+User will need to install devtools in R for running CNCDriver package
 
 ```sh
 install.packages("devtools")
 library("devtools")
-devtools::install_github("khuranalab/CompositeDriver")
+devtools::install_github("khuranalab/CNCDriver")
 ```
 
 ### Usage
-User will need to 
-
-* (1) download [drm.gene.bed](http://khuranalab.med.cornell.edu/FunSeq_data/FunSeq2_DC2/data/drm.gene.bed) file and put it in the "/path/to/dataContext" folder
-* (2) assign "/path/to/Output.vcf" path for FunSeq2 annotated vcf file
-* (3) assign "/path/to/output" path for saving CompositeDriver results
-* (4) tumorType: name of tumor type
-* (5) seedNum: random number seed number (default is 42)
-* (6) functionalImpactScoreCDS: name of functional impact scoring scheme for CDS (current supports "FunSeq2" or "MCAP")
-* (7) functionalImpactScoreNonCoding: name of functional impact scoring scheme for non-coding (current supports "FunSeq2" )
-* (8) reSampleIter: sampling iterations (suggesting number is 1000000 iterations)
-* (9) useCores: number of cores for parellel computation 
 
 ```sh
 
-library(CompositeDriver)
+library(CNCDriver)
 
 #####
 # global parameters setup
