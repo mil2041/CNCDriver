@@ -2,7 +2,7 @@
 #'
 #' @param geneDFunique geneDFunique data frame
 #' @param mutationDistMatrix mutationDistMatrix data frame
-#' @param useCore default is one
+#' @param useCore default is one, number of cput to use
 #'
 #' @return variantTriMutCategoryParsed data frame
 #'

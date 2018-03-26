@@ -17,4 +17,4 @@ PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageBuildArgs: --no-build-vignettes
 PackageCheckArgs: --no-vignettes
-PackageRoxygenize: namespace
+PackageRoxygenize: rd,collate,namespace

@@ -1,6 +1,6 @@
 #' Extract overlapping mutations from element annotation bed file
 #'
-#' @param elementBedfileName Where is element annotated bed file
+#' @param elementBedfile The data frame for element annotated bed file 
 #' @param reducedFunseqOutput reducedFunseq2 data frame
 #' @param debugMode TRUE or FALSE
 #'

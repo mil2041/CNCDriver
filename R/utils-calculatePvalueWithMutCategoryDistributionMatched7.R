@@ -1,13 +1,14 @@
 #' calculate Pvalue With Mut CategoryDistribution Matched
 #'
-#' @param variantTriMutCategory geneDFunique data frame
-#' @param backgroundPosVariant mutationDistMatrix data frame
-#' @param mutationDistMatrix default is one
-#' @param featureDF geneDFunique data frame
-#' @param reSampleNum mutationDistMatrix data frame
-#' @param replaceFlag default is one
-#' @param fileName fileName data frame
-#' @param debugMode default is FALSE
+#' @param variantTriMutCategory variantTriMutCategory data frame
+#' @param backgroundPosVariant backgroundPosVariant data frame
+#' @param mutationDistMatrix mutationDistMatrix data frame
+#' @param featureDF featureDF data frame
+#' @param reSampleNum number of re-sampling iterations
+#' @param replaceFlag default is FALSE, whether to replace or not in the sampling process
+#' @param replicationTimingCutOff, Default is 0.2, a numeric value ranging from 0 to 1
+#' @param debugFileName fileName to output debug information
+#' @param debugMode default is FALSE, TRUE or FALSE
 #'
 #' @return variantTriMutCategoryParsed data frame
 #'
@@ -30,7 +31,11 @@
 #'
 #' @concept CNCDriver
 #' @export
-calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCategory,backgroundPosVariant,mutationDistMatrix,featureDF,reSampleNum,replaceFlag,replicationTimingCutOff,debugFileName,debugMode=FALSE){
+calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCategory,
+                                                             backgroundPosVariant,mutationDistMatrix,
+                                                             featureDF,reSampleNum,replaceFlag=FALSE,
+                                                             replicationTimingCutOff,
+                                                             debugFileName,debugMode=FALSE){
   
   ###
   ## use compositeDriverScoreScaled

@@ -1,8 +1,8 @@
-#' addReplicationTimingSignal
+#' Add replication timing signal value
 #'
 #' @param reducedFunseqOutput reducedFunseqOutput data frame
 #' @param replicationTimingDF replicationTimingDF data frame
-#' @param useCores default is one
+#' @param useCores Default is one, number of cpu to use
 #'
 #' @return reducedFunseqOutput data frame
 #'
@@ -30,6 +30,7 @@
 #' @importFrom parallel mclapply
 
 addReplicationTimingSignal<-function(reducedFunseqOutput,replicationTimingDF,useCores=1){
+  
   tmpDF<-reducedFunseqOutput
   
   compositeScorePosGRanges<-GRanges(seqnames=tmpDF$chr,

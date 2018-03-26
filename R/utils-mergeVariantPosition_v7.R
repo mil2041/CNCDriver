@@ -1,8 +1,8 @@
 #' mergeVariantPosition
 #'
 #' @param geneDF list of geneDF data frame
-#' @param sizeFactor sizeFactor data frame
-#' @param countsCutOff default is two
+#' @param sizeFactor sizeFactor vector, a parameter only used in pancancer calculation. A sizeFactor for total mutations counts normalization among multiple cancer types
+#' @param countsCutOff default is two, a parameter only used in pancancer calculation. Scale the mutation occurence value when the counts is equal or above countsCutOff
 #'
 #' @return collapsedDF data frame
 #'
@@ -31,8 +31,8 @@ mergeVariantPosition<-function(datDF,sizeFactor,countsCutOff=2){
    positionVector<-names(recurrenceVector)
 
    ##
-   ## amplify count >=2
-   ## reduce count < 2  
+   ## amplify count >=2 for cancer type with less total mutation number in the cohort, cancer type with most mutations will not be affected
+   ## reduce count < 2  for cancer type with most total mutation number in the cohort, cancer type with least mutations will not be affected
    ##
     
    mergedDF<-lapply(1:length(positionVector), function(x) {
@@ -50,10 +50,10 @@ mergeVariantPosition<-function(datDF,sizeFactor,countsCutOff=2){
      
        recurrenceNormalizedFactor<-1/sizeFactorNormalized[tumorName]
      
-       rescaledScore<-recurrenceNormalizedFactor*score
+       rescaledScore<-score*recurrenceNormalizedFactor
      
      }else{
-       rescaledScore<-score/sizeFactor[tumorName]
+       rescaledScore<-(score)*(1/sizeFactor[tumorName])
      }
      
      #triMutFreq<-datDF[datDF$posIndex==positionVector[x],]$triMutFreq

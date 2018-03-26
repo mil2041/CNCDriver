@@ -1,10 +1,24 @@
 #' Run CNCDriver lincRNA p-value calculation
 #'
-#' @param inputDir Where is annotated funseq2 result
-#' @param tumorType study name
+#' @param inputFileDir The path for prepared R object file [for example,reducedFunseqOutputNCDS_GBM.Rd]
+#' @param outputFileDir The path for output files
+#' @param lincRNARegionBedFile The defintion of promoter regions in bed file format
+#' @param elementKeyWord Default is "lincRNA", the keyword of lincRNA annotation in FunSeq2
+#' @param triNucleotideDistributionFile Cancer type specific mutation counts in 96 trinucleotide category  
+#' @param filterOutBlacklistMutations TRUE or FALSE
+#' @param mutationBlacklistFile The file for mutation blacklist regions
+#' @param replicationTimingGenomeBinnedFile Replication timing value at 1MB bin
+#' @param replicationTimingElementBinnedFile Replication timing value of each element within 1MB bin
+#' @param tumorType Study name
 #' @param mutationType User provided mutated gene list
-#' @param reSampleIter User provided re-sapling iteration numbers
+#' @param cellType Cell type of the study, [ BJ, GM12878, HeLaS3, HepG2, IMR90, K562, MCF7, SKNSH or average ]
+#' @param replicationTimingCutOff Default is 0.2, a numeric value ranging from 0 to 1
 #' @param seedNum User provided random number seed, default is 42
+#' @param reSampleIterations User provided re-sapling iteration numbers
+#' @param reRunPvalueCutOff Default is 0.1, a numeric value ranging from 0 to 1
+#' @param useCores Default is 1, number of cpu to use
+#' @param taskNum Default is 0, 0 means to run all elements
+#' @param unitSize  Number of elements to run per task
 #' @param debugMode TRUE or FALSE
 #'
 #' @return results data frame
@@ -28,7 +42,7 @@
 #'
 #' @concept CNCDriver
 #' @export
-#' @impor doRNG
+#' @import doRNG
 #' @importFrom plyr rbind.fill
 #' @importFrom stats p.adjust
 #' @importFrom utils write.table

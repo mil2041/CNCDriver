@@ -1,11 +1,11 @@
 Package: CNCDriver
 Type: Package
 Title: CNCDriver
-Version: 0.1.0
+Version: 0.1.1
 Author: Eric Minwei Liu [aut,cre], Priyanka Dhingra [aut]
 Maintainer: Eric Minwei Liu <emliu.research@gmail.com>
 Description: CNCDriver
-Imports: jsonlite, parallel,data.table,plyr,
+Imports: jsonlite
 Depends:
     R (>= 3.2.0),
     ggplot2,
