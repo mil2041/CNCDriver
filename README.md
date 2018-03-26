@@ -5,7 +5,7 @@ CNCDriver combined mutation recurrence and functional impact to identify coding 
 
 ### Version notes
 
-
+* CNCDriver (version 0.1.1) variable refacoring 
 * CNCDriver (version 0.1) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
 
 
@@ -47,10 +47,52 @@ library(CNCDriver)
 
 #####
 
-  mutationType<-"CDS"
-  cdsOutputDf<-getCDSpvalue(outputDir,tumorType,mutationType,
-                            reSampleIter=reSampleIter,
-                            seedNum=seedNum,debugMode=debugMode)
+  mutationType<-"promoter"
+  elementKeyWord<-"Promoter"
+  
+  promoterOutputDf<-getPromoterPvalue(inputFileDir,outputFileDir,
+                                      promoterRegionBedFile,elementKeyWord,
+                                      triNucleotideDistributionFile,
+                                      filterOutBlacklistMutations,mutationBlacklistFile,
+                                      replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFilePromoter,
+                                      tumorType,mutationType,cellType,replicationTimingCutOff,
+                                      seedNum,reSampleIterations,reRunPvalueCutOff,
+                                      useCores,taskNum,unitSize,debugMode)
+
+
+
+
+#####
+
+  mutationType<-"lincRNA"
+  elementKeyWord<-"lincRNA"
+  
+  lincRNAOutputDf<-getLincRNAPvalue(inputFileDir,outputFileDir,
+                                    lincRNARegionBedFile,elementKeyWord,
+                                    triNucleotideDistributionFile,
+                                    filterOutBlacklistMutations,mutationBlacklistFile,
+                                    replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFileLincRNA,
+                                    tumorType,mutationType,cellType,replicationTimingCutOff,
+                                    seedNum,reSampleIterations,reRunPvalueCutOff,
+                                    useCores,taskNum,unitSize,debugMode)
+
+
+#####
+
+
+  mutationType<-"enhancerUnit"
+  elementKeyWord<-"Distal"
+  
+  enhancerUnitOutputDf<-getEnhancerUnitPvalue(inputFileDir,outputFileDir,
+                                              enhancerRegionBedFile,elementKeyWord,
+                                              triNucleotideDistributionFile,
+                                              filterOutBlacklistMutations,mutationBlacklistFile,
+                                              replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFileEnhancer,
+                                              tumorType,mutationType,cellType,replicationTimingCutOff,
+                                              seedNum,reSampleIterations,reRunPvalueCutOff,
+                                              useCores,taskNum,unitSize,debugMode)
+
+#####
 
 #####
 
