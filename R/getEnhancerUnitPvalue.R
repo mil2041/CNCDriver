@@ -1,4 +1,4 @@
-#' Run CNCDriver promoter p-value calculation
+#' Run CNCDriver enhancer unit p-value calculation
 #'
 #' @param inputDir Where is annotated funseq2 result
 #' @param tumorType study name
@@ -34,8 +34,8 @@
 #' @importFrom utils write.table
 #' @importFrom data.table data.table
 #' 
-getPromoterPvalue<-function(inputFileDir,outputFileDir,
-                            promoterRegionBedFile,elementKeyWord="Promoter",
+getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
+                            enhancerRegionBedFile,elementKeyWord="Distal",
                             triNucleotideDistributionFile,
                             filterOutBlacklistMutations,mutationBlacklistFile,
                             replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFile,
@@ -87,22 +87,56 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
     load(fileName)
     
     #####
-    ## load promoter bed file
+    ## load enhancer DRM bed file
     #####
     
     cat(sprintf("Load elementBedfile\n"))
     #filePath<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode"
     #fileName<-"gencode.v19.promoter.bed"
-    fileName<-promoterRegionBedFile
+    fileName<-enhancerRegionBedFile
     
-    elementBedfileName<-file.path(promoterRegionBedFile)
+    elementBedfileName<-file.path(enhancerRegionBedFile)
     #reducedFunseqOutput<-reducedFunseqOutputNCDS
     
     
-    elementBedfile<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
-    colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
-    #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
+    #######
     
+    enhancerDF<-fread(elementBedfileName,header=FALSE,sep="\t",data.table=FALSE)
+    colnames(enhancerDF)<-c("chr","posStart","posEnd","geneSymbol","score","method")
+    
+    ## add +1 for posStart from bed format 
+    enhancerDF$posStart<-enhancerDF$posStart+1
+    
+    
+    # 769538 unnique enhancer segments before merge
+    enhancerTmp<-unique(paste(enhancerDF$chr,enhancerDF$posStart,enhancerDF$posEnd,sep="@"))
+    
+    
+    # 17380 genes associate with enhancer
+    numOfgeneAssociateWithEnhancer<-length(unique(enhancerDF$geneSymbol))
+    
+    enhancerCoord<-strsplit(enhancerTmp,"@")
+    enhancerCoord<-do.call(rbind,enhancerCoord)
+    
+    enhancerCoord<-data.frame(enhancerCoord[,1],as.numeric(enhancerCoord[,2]),as.numeric(enhancerCoord[,3]),stringsAsFactors = FALSE)
+    colnames(enhancerCoord)<-c("chr","posStart","posEnd")
+    
+    enhancerGR=GRanges(seqnames=enhancerCoord$chr,
+                       ranges=IRanges(start=(enhancerCoord$posStart),
+                                      end=(enhancerCoord$posEnd)),
+                       names=paste(enhancerCoord$chr,paste(enhancerCoord$posStart,enhancerCoord$posEnd,sep="-"),sep=":"))
+    
+    # 251455 unnique enhancer segments after merge
+    enhancerGR<-reduce(enhancerGR)
+    
+    chrName<-as.character(seqnames(enhancerGR))
+    startPos<-start(enhancerGR)
+    endPos<-end(enhancerGR)
+    elementName<-paste(chrName,":",startPos,"-",endPos,sep="") 
+    
+    elementBedfile<-data.frame(chrName,startPos-1,endPos,elementName,stringsAsFactors = FALSE)
+    colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
+    #######
     
     ## extract mutations overlap with pre-defined element regions
     reducedFunseqOutputNCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputNCDS)
@@ -231,9 +265,48 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
       
       return(geneSymbol)  
     }
+
+    parseFunseqNCENCField<-function(field,keyword,useCores=1){
+      geneSymbol<-{}
+      a1<-strsplit(field,",")
+      
+      tmpStr<-mclapply(1:length(a1), function(x){
+        #cat(sprintf("gene:%s\n",i))  
+        idx <- which(grepl(keyword, a1[[x]]))
+        
+        t3 <- strsplit(a1[[x]][idx], "\\[")    
+        geneSymbol[x]<-substr(t3[[1]][2],1,nchar(t3[[1]][2])-2)
+        
+      },mc.cores=useCores)
+      
+      geneSymbol<-unlist(tmpStr)
+      
+      return(geneSymbol)  
+    }
     
-    cat(sprintf("Start parsing GENE field annotations\n"))
-    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
+    parseFunseqGeneFieldenhancer<-function(field,keyword="Distal",useCores=1){
+      geneSymbol<-{}
+      a1<-strsplit(field,",")
+      
+      geneSymbol<-mclapply(1:length(a1), function(x){
+        #cat(sprintf("gene:%s\n",i))  
+        idx <- which(grepl(keyword, a1[[x]]))
+        
+        t3 <- strsplit(a1[[x]][idx], "\\(")
+        cc<-data.frame(do.call("rbind",t3),stringsAsFactors=FALSE)    
+        geneSymbol<-paste(as.character(cc$X1),collapse=",")
+        
+      }, mc.cores=useCores)
+      
+      geneSymbol<-unlist(geneSymbol)
+      
+      return(geneSymbol)  
+    }
+    
+    
+    cat(sprintf("Start parsing GENE field annotations to get enhancer name\n"))
+    #reducedFunseqOutputNCDS$GENEparsed<-parseFunseqNCENCField(field=reducedFunseqOutputNCDS$NCENC,keyword=elementKeyWord,useCores=1)
+    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneFieldenhancer(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
     
     tmpString<-strsplit(as.character(reducedFunseqOutputNCDS$NCDS),":",fixed=TRUE)
     tmpStringFrame<-data.frame(do.call("rbind",tmpString),stringsAsFactors=FALSE)
@@ -484,14 +557,16 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
       
       posIndex<-paste(tmpDF$chr,paste(tmpDF$posStart,tmpDF$posEnd,sep="-"),sep=":")
       geneDF<-data.frame(tmpDF$sampleID,posIndex,tmpDF$chr,tmpDF$posStart,
-                         tmpDF$posEnd,tmpDF$GENEparsed,tmpDF$ref,tmpDF$alt,
+                         tmpDF$posEnd,tmpDF$GENEparsed,tmpDF$elementName,
+                         tmpDF$ref,tmpDF$alt,
                          tmpDF$TFPname,tmpDF$TFMname,tmpDF$TFMfullName,
                          tmpDF$motifBreakMotifTFName,tmpDF$motifGainMotifTFName,
                          tmpDF$score,tmpDF$RECUR,tmpDF$index,tmpDF$signalValue,
                          tmpDF$tumorType,stringsAsFactors = FALSE)
       #                     tmpDF$tumorType,stringsAsFactors = FALSE)
       colnames(geneDF)<-c("sampleID","posIndex","chr","posStart",
-                          "posEnd","geneSymbol","ref","alt",
+                          "posEnd","geneSymbol","elementName",
+                          "ref","alt",
                           "TFPname","TFMname","TFMfullName",
                           "motifBreakMotifTFName","motifGainMotifTFName",
                           "score","recur","triMutIndex","signalValue","tumorType")
@@ -504,15 +579,31 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
         geneDF[is.na(geneDF$score),]$score<-0
       }
       
-      geneNameVector<-unique(geneDF$geneSymbol)
-      geneDF<-split(geneDF,geneDF$geneSymbol)
+      #######
+      # Section for enhancer unit
+      #######
       
+      #geneNameVector<-unique(geneDF$geneSymbol)
+      #geneDF<-split(geneDF,geneDF$geneSymbol)
+      
+      geneNameVector<-unique(unlist(strsplit(geneDF$geneSymbol,",")))
+      
+      geneDFenhancer<-mclapply(1:length(geneNameVector), function(x){
+        geneName<-geneNameVector[x]
+        tmpFrame<-geneDF[grepl(paste("\\b",geneName,"\\b",sep=""),geneDF$geneSymbol),]
+        tmpFrame$geneSymbol<-geneName
+        return(tmpFrame)
+      },mc.cores=useCores)
+      
+      names(geneDFenhancer)<-geneNameVector
+      
+      #######
       geneDFpatient<-{}
       
       geneDFpatient<-mclapply(1:length(geneNameVector), function(x){
         #tmpDat<-geneDF[[geneName]][!(duplicated(geneDF[[geneName]]$posIndex)),]
         geneName<-geneNameVector[x]
-        tmpDF<-geneDF[[geneName]]
+        tmpDF<-geneDFenhancer[[geneName]]
         npat<-length(unique(tmpDF$sampleID))
         geneDFpatient[[geneName]]<-npat
       },mc.cores=useCores)
@@ -553,17 +644,17 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
           #for(x in 1:length(geneNameVector)){
           #cat(sprintf("%s\n",x))  
           geneName<-geneNameVector[x]
-          geneDFunique[[geneName]]<-geneDF[[geneName]][!(duplicated(geneDF[[geneName]]$posIndex)),]
+          geneDFunique[[geneName]]<-geneDFenhancer[[geneName]][!(duplicated(geneDFenhancer[[geneName]]$posIndex)),]
           geneDFunique[[geneName]]<-geneDFunique[[geneName]][order(geneDFunique[[geneName]]$posIndex),]
           recurrenceVector<-table(geneDF[[geneName]]$posIndex)
         
-          collapsedDF<-mergeVariantPosition(geneDF[[geneName]],sampleSizeFactor,countsCutOff = 2)
+          collapsedDF<-mergeVariantPosition(geneDFenhancer[[geneName]],sampleSizeFactor,countsCutOff = 2)
           
           #geneDFunique[[geneName]]$occurence<-mergedDF[geneDFunique[[geneName]]$posIndex,]$occurence
           #geneDFunique[[geneName]]$compositeScore<-mergedDF[geneDFunique[[geneName]]$posIndex,]$compositeScore
           #geneDFunique[[geneName]]$tumorCounts<-mergedDF[geneDFunique[[geneName]]$posIndex,]$tumorCounts
           tmpDF<-geneDFunique[[geneName]]
-          geneDFunique[[geneName]]<-cbind(tmpDF[,2:13],collapsedDF[,2:6])
+          geneDFunique[[geneName]]<-cbind(tmpDF[,2:14],collapsedDF[,2:6])
           
           #}
           
@@ -622,6 +713,8 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
       #geneDF<-rbind.fill(geneDF)
       geneDFunique<-rbind.fill(geneDFunique)
       
+      geneDFuniqueEnhancer<-geneDFunique[!(duplicated(geneDFunique$posIndex)),]
+      
       #####
       
       #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
@@ -633,7 +726,7 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
         
         cat(sprintf("Processing variantTriMutCategoryParsed object for calculation\n"))
         
-        variantTriMutCategoryParsed<-parsePosVariantByTriMutContextWithAnnotation5(geneDFunique,mutationDistMatrix,useCores=useCores)
+        variantTriMutCategoryParsed<-parsePosVariantByTriMutContextWithAnnotation5(geneDFuniqueEnhancer,mutationDistMatrix,useCores=useCores)
         
         if( !file.exists(paste(filePath,sep="/")) ){
           dir.create(paste(filePath,sep=""),recursive=TRUE)
@@ -759,7 +852,14 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
         gname<-ncdsMutationCheckList[k]
         #gname<-"TERT"
         #a1<-geneDFunique[geneDFunique$geneSymbol==gname,]
-        a1<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$geneSymbol==gname,]
+        #a1<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$geneSymbol==gname,]
+        
+        selectedPosition<-unique(geneDFunique[geneDFunique$geneSymbol==gname,]$posIndex)
+        
+        a1<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$posIndex %in% selectedPosition,]
+        a1$geneSymbol<-rep(gname,nrow(a1))
+        
+        
         #reSamplePosSize<-nrow(a1)
         #compositeScore[k]<-sum(a1$compositeScore)
         
@@ -785,7 +885,7 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
         #a2<-geneDFunique[geneDFunique$geneSymbol!=gname,]
         #a2<-a2[!is.na(a2$signalValue),]
         
-        a2<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$geneSymbol!=gname,]
+        a2<-variantTriMutCategoryParsed[!(variantTriMutCategoryParsed$posIndex %in% selectedPosition),]
         a2<-a2[!is.na(a2$signalValue),]
         
         #####
@@ -847,9 +947,17 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
         numOfAboveCScore<-result$numOfAboveCScore
         reSampleSize<-result$reSampleSize
         
-        tmpResult<-data.frame(gname,numOfAlterationPos,numOfAlteration,numOfPatient,compositeScore,numOfAboveCScore,reSampleSize,pValue,stringsAsFactors = FALSE)
+        #######
+        
+        strTmp<-unique(variantTriMutCategory$elementName)
+        elementNameMerged<-paste(strTmp,collapse=",")
+        numOfAlteredElement<-length(unique(strTmp))
+        
+        ######
+        
+        tmpResult<-data.frame(elementNameMerged,numOfAlteredElement,gname,numOfAlterationPos,numOfAlteration,numOfPatient,compositeScore,numOfAboveCScore,reSampleSize,pValue,stringsAsFactors = FALSE)
         #colnames(tmpResult)<-c("geneSymbol","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue")
-        colnames(tmpResult)<-c("elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue")
+        colnames(tmpResult)<-c("enhancerUnitPos","numOfAlteredElements","elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue")
         
         
         #filePath<-file.path("~/work/Ekta_lab/JasonWong_dataset/compositeFunSeq_result_triMut_match",tumorType)
@@ -877,7 +985,7 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
       outputDf<-outputDf[order(outputDf$pValue),]
       outputDf$qValue<-p.adjust(outputDf$pValue,method = "BH")
       #colnames(outputDf)<-c("geneSymbol","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
-      colnames(outputDf)<-c("elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
+      colnames(outputDf)<-c("enhancerUnitPos","numOfAlteredElements","elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
       
       
       fileName<-paste(tumorType,"_outputDf_",mutationType,"_",groupName,"_with_RT_correction_similarity_",replicationTimingCutOff,"_triMut_match_distribution_task_",taskNum,"_iter_",reSampleNum,"_.txt",sep="")

@@ -1,4 +1,4 @@
-#' Run CNCDriver promoter p-value calculation
+#' Run CNCDriver lincRNA p-value calculation
 #'
 #' @param inputDir Where is annotated funseq2 result
 #' @param tumorType study name
@@ -34,8 +34,8 @@
 #' @importFrom utils write.table
 #' @importFrom data.table data.table
 #' 
-getPromoterPvalue<-function(inputFileDir,outputFileDir,
-                            promoterRegionBedFile,elementKeyWord="Promoter",
+getLincRNAPvalue<-function(inputFileDir,outputFileDir,
+                            lincRNARegionBedFile,elementKeyWord="lincRNA",
                             triNucleotideDistributionFile,
                             filterOutBlacklistMutations,mutationBlacklistFile,
                             replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFile,
@@ -93,16 +93,14 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
     cat(sprintf("Load elementBedfile\n"))
     #filePath<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode"
     #fileName<-"gencode.v19.promoter.bed"
-    fileName<-promoterRegionBedFile
+    fileName<-lincRNARegionBedFile
     
-    elementBedfileName<-file.path(promoterRegionBedFile)
+    elementBedfileName<-file.path(lincRNARegionBedFile)
     #reducedFunseqOutput<-reducedFunseqOutputNCDS
-    
     
     elementBedfile<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
     colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
     #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
-    
     
     ## extract mutations overlap with pre-defined element regions
     reducedFunseqOutputNCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputNCDS)
@@ -231,9 +229,28 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
       
       return(geneSymbol)  
     }
+
+    parseFunseqNCENCField<-function(field,keyword,useCores=1){
+      geneSymbol<-{}
+      a1<-strsplit(field,",")
+      
+      tmpStr<-mclapply(1:length(a1), function(x){
+        #cat(sprintf("gene:%s\n",i))  
+        idx <- which(grepl(keyword, a1[[x]]))
+        
+        t3 <- strsplit(a1[[x]][idx], "\\[")    
+        geneSymbol[x]<-substr(t3[[1]][2],1,nchar(t3[[1]][2])-2)
+        
+      },mc.cores=useCores)
+      
+      geneSymbol<-unlist(tmpStr)
+      
+      return(geneSymbol)  
+    }
     
-    cat(sprintf("Start parsing GENE field annotations\n"))
-    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
+        
+    cat(sprintf("Start parsing NCENC field annotations to get lincRNA name\n"))
+    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqNCENCField(field=reducedFunseqOutputNCDS$NCENC,keyword=elementKeyWord,useCores=1)
     
     tmpString<-strsplit(as.character(reducedFunseqOutputNCDS$NCDS),":",fixed=TRUE)
     tmpStringFrame<-data.frame(do.call("rbind",tmpString),stringsAsFactors=FALSE)

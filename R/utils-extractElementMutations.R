@@ -32,20 +32,21 @@
 
 
 
-extractElementMutations<-function(elementBedfileName,reducedFunseqOutput,debugMode=FALSE){
+extractElementMutations<-function(elementBedfile,reducedFunseqOutput,debugMode=FALSE){
 
     testDT<-data.table(reducedFunseqOutput)
     setkeyv(testDT,c("chr","posStart","posEnd"))
     
     #######
     #
-    # keep mutation on elementBedfileName
+    # keep mutation on elementBedfile
     # 
     ######
     
-    dat<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
-    colnames(dat)<-c("chr","posStart","posEnd","name")
+    #elementBedfile<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
+    #colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
     #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
+    
     
     ##
     ## only take the first four columns in the bed file
@@ -54,7 +55,7 @@ extractElementMutations<-function(elementBedfileName,reducedFunseqOutput,debugMo
     ## chr1    68891  69090      OR4F5 
     ## chr1   139310 139579 AL627309.1
     
-    dat<-dat[,c(1:4)]
+    dat<-elementBedfile[,c(1:4)]
     
     #dat<-convertBED12format(dat,useCores)
     
