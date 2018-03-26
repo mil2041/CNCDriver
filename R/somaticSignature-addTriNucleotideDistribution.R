@@ -26,12 +26,11 @@
 #' @export
 #' @import BSgenome.Hsapiens.UCSC.hg19
 #' @import TxDb.Hsapiens.UCSC.hg19.knownGene
+#' @import IRanges
+#' @import GenomicRanges
 #' @importFrom SomaticSignatures mutationContext
 #' @importFrom SomaticSignatures ucsc
 #' @importFrom VariantAnnotation VRanges
-#' @importFrom GenomicRanges GRanges
-
-
 
 
 

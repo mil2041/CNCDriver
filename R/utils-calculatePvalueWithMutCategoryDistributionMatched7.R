@@ -30,14 +30,12 @@
 #'
 #' @concept CNCDriver
 #' @export
-
-
-calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCategory,backgroundPosVariant,mutationDistMatrix,featureDF,reSampleNum,replaceFlag,fileName,debugMode=FALSE){
-
+calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCategory,backgroundPosVariant,mutationDistMatrix,featureDF,reSampleNum,replaceFlag,replicationTimingCutOff,debugFileName,debugMode=FALSE){
+  
   ###
   ## use compositeDriverScoreScaled
   ##
-
+  
   gname<-variantTriMutCategory$geneSymbol[1]
   
   tumorTypeInElement<-unique(unlist(strsplit(variantTriMutCategory$tumorName,",")))
@@ -79,7 +77,7 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
         
         break
       }
-  
+      
     }
     
   }
@@ -101,25 +99,30 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
   #  start of random shuffle
   ####
   
-  if(combinationNumEstimate < reSampleNum){
+  ## Legacy code
+  if(FALSE){
+    
+        if(combinationNumEstimate < reSampleNum){
+          
+          # work on this for panCancer
+          #nearestCategoryName<-getNearestCategory(mutCategoryName, mutFreqLocal,replicationTimingCutOff)
+          #mutCategoryList[[i]]<-nearestCategoryName
+          # do we have enough combinations after category matching expansion ?
+          #expandedGroupCounts[i]<-sum(mutFreqLocal[mutFreqLocal$categoryName %in% mutCategoryList[[i]],]$counts)
+          #expandedCombnNum[i]<-choose(expandedGroupCounts[[i]],mutCategoryCandidate$variantCounts)
+          
+          cat(sprintf("[ Warning ]: %s has variant need to extend matching space\n",gname),file=debugFileName,append=TRUE)
+          
+        }else{
+          
+          cat(sprintf("[ Good ]: element %s has combnNum: %s that is bigger than reSampleNum: %s\n",gname,combinationNumEstimate,reSampleNum),file=debugFileName,append=TRUE)
+          
+        }
   
-      # work on this for panCancer
-      #nearestCategoryName<-getNearestCategory(mutCategoryName, mutFreqLocal,categoryRankCutOff)
-      #mutCategoryList[[i]]<-nearestCategoryName
-      # do we have enough combinations after category matching expansion ?
-      #expandedGroupCounts[i]<-sum(mutFreqLocal[mutFreqLocal$categoryName %in% mutCategoryList[[i]],]$counts)
-      #expandedCombnNum[i]<-choose(expandedGroupCounts[[i]],mutCategoryCandidate$variantCounts)
-    cat(sprintf("CandidateGroupExpand: %s has variant need to extend matching space\n",gname),file=fileName,append=TRUE)
-    
-  }else{
-    
-    cat(sprintf("CandidateGroupExpand: %s combnNum: %s is bigger than reSampleNum: %s\n",gname,combinationNumEstimate,reSampleNum),file=fileName,append=TRUE)
-    
-  }
-    
+  }  
+  
   #####
-  # 
-  #geneDFuniqueMatched<-geneDFuniqueSelected[geneDFuniqueSelected$triMutIndex %in% mutCategorySelected,]
+  # geneDFuniqueMatched<-geneDFuniqueSelected[geneDFuniqueSelected$triMutIndex %in% mutCategorySelected,]
   #####
   
   numOfAlterationPos<-nrow(variantTriMutCategory)
@@ -128,6 +131,10 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
   #compositeScoreScaled<-sum(variantTriMutCategory$compositeScore)  
   
   if(numOfAlterationPos==1 && combinationNumEstimate < reSampleNum){
+    
+    ######
+    ## We can calculate exact p-value without re-sampling
+    ######
     
     if(compositeScoreScaled==0){
       
@@ -141,9 +148,11 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
       
     }else{
       
+      ######
       #
-      # when numOfAlterationPos==1 && nrow(geneDFuniqueMatched) < reSampleNum && compositeScore !=0
+      # when numOfAlterationPos==1 && ( nrow(geneDFuniqueMatched) < reSampleNum ) && compositeScore !=0
       #
+      ######
       
       #indexMatrix<-makeReSampleIndexMatrixParallel(nrow(geneDFuniqueSelected),numOfAlterationPos[k],reSampleNum,6,seedNum = 123)
       #compositeScoreResample<-{}
@@ -154,35 +163,48 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
       pValue<-(numOfAboveCScore+1)/(nrow(backgroundPosVariantMatched)+1)
       
     }
-      reSampleSize<-nrow(backgroundPosVariantMatched)
-      
+    
+    reSampleSize<-nrow(backgroundPosVariantMatched)
+    
   }else{
+    
+    ######
+    ## We need to do re-sampling to calculate p-value
+    ######
     
     time_start<-proc.time()
     #indexMatrix<-makeReSampleIndexMatrixParallel(nrow(geneDFuniqueSelected),numOfAlterationPos[k],reSampleNum,useNodes,seedNum = 123)
     #variantGroupSize<-nrow(geneDFuniqueMatched)
     #probSelected<-geneDFuniqueSelected$prob
     
-    if(combinationNumEstimate<reSampleNum){
+    if(combinationNumEstimate < reSampleNum){
+      
       drawIteration<-combinationNumEstimate
+    
     }else{
+      
       drawIteration<-reSampleNum
+      
     }
     
     if(numOfAlterationPos>1){
+      
       # each column is a re-sampleing index that repeats # of column times 
       #indexMatrix<-replicate(reSampleNum,sample(1:variantGroupSize,size=numOfAlterationPos,replace=FALSE),simplify = "matrix")
       
-       indexMatrix<-replicate(drawIteration,sample(backgroundPosVariantMatched$compositeScoreScaled,size=numOfAlterationPos,replace=replaceFlag,prob=backgroundPosVariantMatched$probSelected),simplify = "matrix")
-       compositeScoreResample<-colSums(indexMatrix)
-
-       #reSampleResult<-makeReSampleIndex(variantTriMutCategory,backgroundPosVariantMatched,combinationNumEstimate,reSampleNum,debug)
-       #indexMatrix<-reSampleResult$indexMatrix
-       combinationNum<-drawIteration   
+      indexMatrix<-replicate(drawIteration,sample(backgroundPosVariantMatched$compositeScoreScaled,size=numOfAlterationPos,replace=replaceFlag,prob=backgroundPosVariantMatched$probSelected),simplify = "matrix")
+      compositeScoreResample<-colSums(indexMatrix)
+      
+      #reSampleResult<-makeReSampleIndex(variantTriMutCategory,backgroundPosVariantMatched,combinationNumEstimate,reSampleNum,debug)
+      #indexMatrix<-reSampleResult$indexMatrix
+      combinationNum<-drawIteration   
+      
     }else{
+      
       ######  
       # numOfAlterationPos is 1 and nrow(backgroundPosVariantMatched) >= reSampleNum
       ######
+      
       #indexMatrix<-matrix(replicate(reSampleNum,sample(1:variantGroupSize,size=1,replace=FALSE),simplify = "matrix"),ncol=reSampleNum)
       ## next work from here
       #indexMatrix<-matrix(replicate(reSampleNum,sample(1:variantGroupSize,size=1,replace=FALSE,prob=probSelected),simplify = "matrix"),ncol=reSampleNum)
@@ -196,16 +218,22 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
     #time_elapesed<-proc.time()-time_start
     #cat (sprintf ("Time for build reSampleing matrix: %.2f sec\n", time_elapesed[3]) )
     
-    if(combinationNum<reSampleNum){ 
-      cat(sprintf("Warning: %s combnNum: %s is less than reSampleNum: %s\n",gname,combinationNum,reSampleNum),file=fileName,append=TRUE)
-      #cat(sprintf("Warning: %s combnNum: %s is less than reSampleNum: %s\n",gname,combnNum,reSampleNum))
-      
-      # speacial awareness!!
-      reSampleNum<-combinationNum
-      
-    }else{
-      cat(sprintf("Warning: %s combnNum: %s is bigger than reSampleNum: %s\n",gname,combinationNum,reSampleNum),file=fileName,append=TRUE)
-      
+    if(debugMode){
+    
+        if(combinationNum < reSampleNum){ 
+          
+          cat(sprintf("[ Warning ]: %s combnNum: %s is less than reSampleNum: %s\n",gname,combinationNum,reSampleNum),file=debugFileName,append=TRUE)
+          #cat(sprintf("Warning: %s combnNum: %s is less than reSampleNum: %s\n",gname,combnNum,reSampleNum))
+          
+          # speacial awareness!!
+          reSampleNum<-combinationNum
+          
+        }else{
+          
+          cat(sprintf(" [ Good ]: %s combnNum: %s is equal or bigger than reSampleNum: %s\n",gname,combinationNumEstimate,reSampleNum),file=debugFileName,append=TRUE)
+          
+        }
+    
     }
     
     if(!debugMode){
@@ -220,17 +248,30 @@ calculatePvalueWithMutCategoryDistributionMatched7<-function(variantTriMutCatego
       
       
       numOfAboveCScore<-sum(compositeScoreResample>=compositeScoreScaled)
-    
+      
       #hist(compositeScoreResample,breaks=100,col="grey",xlab="compositeScore",xlim=c(0,compositeScore+5))
       #abline(v=compositeScore,col="red")
-    
+      
       pValue<-(numOfAboveCScore+1)/(drawIteration+1)
+      
     }else{
-      numOfAboveCScore<-0
-      pValue<-1
+      
+      
+      
+      numOfAboveCScore<-sum(compositeScoreResample>=compositeScoreScaled)
+      pValue<-(numOfAboveCScore+1)/(drawIteration+1)
+      
+      #####
+      ## In debugMode, skip p-value calculations
+      #####
+      
+      #numOfAboveCScore<-0
+      #pValue<-1
+      
     }
     
     reSampleSize<-drawIteration
+    
   }
   
   

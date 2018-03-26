@@ -25,8 +25,8 @@
 #'
 #' @concept CNCDriver
 #' @export
-#' @importFrom GenomicRanges GRanges
-#' @importFrom GenomicRanges findOverlaps
+#' @import IRanges
+#' @import GenomicRanges
 #' @importFrom parallel mclapply
 
 addReplicationTimingSignal<-function(reducedFunseqOutput,replicationTimingDF,useCores=1){

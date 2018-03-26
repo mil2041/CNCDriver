@@ -27,6 +27,7 @@
 #' @export
 #' @importFrom data.table setkeyv
 #' @importFrom data.table as.data.table
+#' @importFrom data.table data.table
 #' @importFrom data.table foverlaps
 
 
@@ -37,17 +38,23 @@ extractElementMutations<-function(elementBedfileName,reducedFunseqOutput,debugMo
     setkeyv(testDT,c("chr","posStart","posEnd"))
     
     #######
-    # keep mutation on lncrna.ncrna.bed
+    #
+    # keep mutation on elementBedfileName
     # 
     ######
-    
-    #filePath<-"~/work/Ekta_lab/compositeDriver_data/PCAWG_annotation/oct_05_2016_version"
-    #fileName<-"lncrna.ncrna.bed"
-    #fileName<-file.path(filePath,fileName)
     
     dat<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
     colnames(dat)<-c("chr","posStart","posEnd","name")
     #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
+    
+    ##
+    ## only take the first four columns in the bed file
+    ##
+    ## chr posStart posEnd       name                
+    ## chr1    68891  69090      OR4F5 
+    ## chr1   139310 139579 AL627309.1
+    
+    dat<-dat[,c(1:4)]
     
     #dat<-convertBED12format(dat,useCores)
     
