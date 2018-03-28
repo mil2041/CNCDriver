@@ -1,4 +1,4 @@
-#' Parse Pos Variant By TriMutContext With Annotation
+#' Parse Pos Variant By TriMutContext With Annotation for protein coding region
 #'
 #' @param geneDFunique geneDFunique data frame
 #' @param mutationDistMatrix mutationDistMatrix data frame
@@ -28,8 +28,7 @@
 #' @importFrom stringr str_extract_all
 #' @importFrom parallel mclapply
 #' @importFrom plyr rbind.fill
-
-parsePosVariantByTriMutContextWithAnnotation5<-function(geneDFunique,mutationDistMatrix,useCores=1){
+parsePosVariantByTriMutContextWithAnnotationCDS<-function(geneDFunique,mutationDistMatrix,useCores=1){
   
   #stringVector<-a1$categoryCounts
   stringVector<-geneDFunique$categoryCounts
@@ -43,6 +42,8 @@ parsePosVariantByTriMutContextWithAnnotation5<-function(geneDFunique,mutationDis
   tmpStr<-strsplit(stringVector,"\\,")
   
   tmpStr<-mclapply(1:length(tmpStr), function(x){
+  #tmpStr<-lapply(1:length(tmpStr), function(x){
+  #  cat(sprintf("iteration: %s\n",x))  
     tmp<-strsplit(tmpStr[[x]],":")
     tmp2<-sapply(1:length(tmp),function(y){tmp[[y]][1]})
     tumorName<-paste(unique(tmp2),collapse=",")
@@ -53,7 +54,7 @@ parsePosVariantByTriMutContextWithAnnotation5<-function(geneDFunique,mutationDis
     numOfCategory<-length(unique(tmp3))
     
     data.frame(tumorName,numOfTumorType,categoryName,numOfCategory,stringsAsFactors = FALSE)
-  
+  #})
   },mc.cores=useCores)
   
   tmpStr<-rbind.fill(tmpStr)
@@ -66,20 +67,20 @@ parsePosVariantByTriMutContextWithAnnotation5<-function(geneDFunique,mutationDis
   
   splitedDat<-mclapply(1:length(str), function(x){
   #splitedDat<-lapply(1:length(str), function(x){
-    #cat(sprintf("iter %s\n",x))
+  #cat(sprintf("iter: %s\n",x))
     tmpStr<-unlist(strsplit(str[x],","))
     tmpStr2<-strsplit(tmpStr,":")
     tmpCounts<-strsplit(countsRatio[x],":")
     tmpDF3<-data.frame(do.call(rbind,tmpStr2),tmpCounts,stringsAsFactors = FALSE)
     colnames(tmpDF3)<-c("tumorType","categoryName","counts")
     return(tmpDF3)
-  #})
+  #}) 
   },mc.cores=useCores)  
       
   posCategoryFreq<-mclapply(1:length(splitedDat), function(y){
   #posCategoryFreq<-lapply(1:length(splitedDat), function(y){
-  #  cat(sprintf("iter %s\n",y))
-    categoryFreq<-sapply(1:nrow(splitedDat[[y]]), function(z){
+      cat(sprintf("iter: %s\n",y))
+      categoryFreq<-sapply(1:nrow(splitedDat[[y]]), function(z){
           selectedCol<-which(colnames(mutationDistMatrix) %in% splitedDat[[y]][z,1])
           freq<-mutationDistMatrix[splitedDat[[y]][z,2],selectedCol]
     })
@@ -88,7 +89,8 @@ parsePosVariantByTriMutContextWithAnnotation5<-function(geneDFunique,mutationDis
     dat1<-splitedDat[[y]]
     weightedFreq<-sum(as.numeric(dat1$counts)*dat1$prob)/sum(as.numeric(dat1$counts))
     return(weightedFreq)
-  #})  
+  
+  #})    
   },mc.cores=useCores)
     
   posCategoryFreq<-unlist(posCategoryFreq)

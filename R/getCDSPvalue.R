@@ -1,9 +1,11 @@
-#' Run CNCDriver enhancer unit p-value calculation
+#' Run CNCDriver coding region (CDS) p-value calculation
 #'
-#' @param inputFileDir The path for prepared R object file [for example,reducedFunseqOutputNCDS_GBM.Rd]
+#' @param inputFileDir The path for prepared R object file [for example,reducedFunseqOutputCDS_GBM.Rd]
 #' @param outputFileDir The path for output files
-#' @param enhancerRegionBedFile The defintion of promoter regions in bed file format
-#' @param elementKeyWord Default is "Distal", the keyword of enhancer annotation in FunSeq2
+#' @param codingRegionBedFile The defintion of coding regions in bed file format
+#' @param elementKeyWord Default is "Promoter", the keyword of promoter annotation in FunSeq2
+#' @param proteinDomainFile protein domain information from pfam
+#' @param proteinLengthFile protein length information from ensembl
 #' @param triNucleotideDistributionFile Cancer type specific mutation counts in 96 trinucleotide category  
 #' @param filterOutBlacklistMutations TRUE or FALSE
 #' @param mutationBlacklistFile The file for mutation blacklist regions
@@ -49,15 +51,17 @@
 #' @importFrom stats p.adjust
 #' @importFrom utils write.table
 #' @importFrom data.table data.table
+#' @importFrom data.table fread
 #' 
-getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
-                            enhancerRegionBedFile,elementKeyWord="Distal",
+getCDSPvalue<-function(inputFileDir,outputFileDir,
+                            codingRegionBedFile,elementKeyWord="CDS",
+                            proteinDomainFile,proteinLengthFile,
                             triNucleotideDistributionFile,
                             filterOutBlacklistMutations,mutationBlacklistFile,
                             replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFile,
                             tumorType,mutationType,cellType,replicationTimingCutOff,
                             seedNum=42,reSampleIterations,reRunPvalueCutOff=0.1,
-                            useCores,taskNum,unitSize,debugMode=FALSE){
+                            useCores=1,taskNum=0,unitSize,debugMode=FALSE){
 
 
     #library(data.table)
@@ -97,65 +101,31 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     # Load pre-processed Rd file
     ########
     filePath<-file.path(inputFileDir)
-    fileName<-paste("reducedFunseqOutputNCDS_",tumorType,".Rd",sep="")
+    fileName<-paste("reducedFunseqOutputCDS_",tumorType,".Rd",sep="")
     fileName<-file.path(filePath,fileName)
     cat(sprintf("Load pre-processed Rd file\n"))
     load(fileName)
     
     #####
-    ## load enhancer DRM bed file
+    ## load promoter bed file
     #####
     
     cat(sprintf("Load elementBedfile\n"))
     #filePath<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode"
     #fileName<-"gencode.v19.promoter.bed"
-    fileName<-enhancerRegionBedFile
+    #fileName<-codingRegionBedFile
     
-    elementBedfileName<-file.path(enhancerRegionBedFile)
+    elementBedfileName<-file.path(codingRegionBedFile)
     #reducedFunseqOutput<-reducedFunseqOutputNCDS
     
     
-    #######
-    
-    enhancerDF<-fread(elementBedfileName,header=FALSE,sep="\t",data.table=FALSE)
-    colnames(enhancerDF)<-c("chr","posStart","posEnd","geneSymbol","score","method")
-    
-    ## add +1 for posStart from bed format 
-    enhancerDF$posStart<-enhancerDF$posStart+1
-    
-    
-    # 769538 unnique enhancer segments before merge
-    enhancerTmp<-unique(paste(enhancerDF$chr,enhancerDF$posStart,enhancerDF$posEnd,sep="@"))
-    
-    
-    # 17380 genes associate with enhancer
-    numOfgeneAssociateWithEnhancer<-length(unique(enhancerDF$geneSymbol))
-    
-    enhancerCoord<-strsplit(enhancerTmp,"@")
-    enhancerCoord<-do.call(rbind,enhancerCoord)
-    
-    enhancerCoord<-data.frame(enhancerCoord[,1],as.numeric(enhancerCoord[,2]),as.numeric(enhancerCoord[,3]),stringsAsFactors = FALSE)
-    colnames(enhancerCoord)<-c("chr","posStart","posEnd")
-    
-    enhancerGR=GRanges(seqnames=enhancerCoord$chr,
-                       ranges=IRanges(start=(enhancerCoord$posStart),
-                                      end=(enhancerCoord$posEnd)),
-                       names=paste(enhancerCoord$chr,paste(enhancerCoord$posStart,enhancerCoord$posEnd,sep="-"),sep=":"))
-    
-    # 251455 unnique enhancer segments after merge
-    enhancerGR<-reduce(enhancerGR)
-    
-    chrName<-as.character(seqnames(enhancerGR))
-    startPos<-start(enhancerGR)
-    endPos<-end(enhancerGR)
-    elementName<-paste(chrName,":",startPos,"-",endPos,sep="") 
-    
-    elementBedfile<-data.frame(chrName,startPos-1,endPos,elementName,stringsAsFactors = FALSE)
+    elementBedfile<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
     colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
-    #######
+    #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
+    
     
     ## extract mutations overlap with pre-defined element regions
-    reducedFunseqOutputNCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputNCDS)
+    reducedFunseqOutputCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputCDS)
     
     ######
     # load triNucleotideDistribution file
@@ -175,7 +145,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     ######
     # This section is for pan-cancer calculation
-    # It is no required for single cancer type calculatin
+    # This is not required for single cancer type calculatin
     ######
     if(FALSE){
         filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/sample_summary")
@@ -281,52 +251,13 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
       
       return(geneSymbol)  
     }
-
-    parseFunseqNCENCField<-function(field,keyword,useCores=1){
-      geneSymbol<-{}
-      a1<-strsplit(field,",")
-      
-      tmpStr<-mclapply(1:length(a1), function(x){
-        #cat(sprintf("gene:%s\n",i))  
-        idx <- which(grepl(keyword, a1[[x]]))
-        
-        t3 <- strsplit(a1[[x]][idx], "\\[")    
-        geneSymbol[x]<-substr(t3[[1]][2],1,nchar(t3[[1]][2])-2)
-        
-      },mc.cores=useCores)
-      
-      geneSymbol<-unlist(tmpStr)
-      
-      return(geneSymbol)  
-    }
     
-    parseFunseqGeneFieldenhancer<-function(field,keyword="Distal",useCores=1){
-      geneSymbol<-{}
-      a1<-strsplit(field,",")
-      
-      geneSymbol<-mclapply(1:length(a1), function(x){
-        #cat(sprintf("gene:%s\n",i))  
-        idx <- which(grepl(keyword, a1[[x]]))
-        
-        t3 <- strsplit(a1[[x]][idx], "\\(")
-        cc<-data.frame(do.call("rbind",t3),stringsAsFactors=FALSE)    
-        geneSymbol<-paste(as.character(cc$X1),collapse=",")
-        
-      }, mc.cores=useCores)
-      
-      geneSymbol<-unlist(geneSymbol)
-      
-      return(geneSymbol)  
-    }
+    #cat(sprintf("Start parsing GENE field annotations\n"))
+    #reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
     
-    
-    cat(sprintf("Start parsing GENE field annotations to get enhancer name\n"))
-    #reducedFunseqOutputNCDS$GENEparsed<-parseFunseqNCENCField(field=reducedFunseqOutputNCDS$NCENC,keyword=elementKeyWord,useCores=1)
-    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneFieldenhancer(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
-    
-    tmpString<-strsplit(as.character(reducedFunseqOutputNCDS$NCDS),":",fixed=TRUE)
+    tmpString<-strsplit(as.character(reducedFunseqOutputCDS$CDSS),":",fixed=TRUE)
     tmpStringFrame<-data.frame(do.call("rbind",tmpString),stringsAsFactors=FALSE)
-    reducedFunseqOutputNCDS$score<-as.numeric(tmpStringFrame[,1])
+    reducedFunseqOutputCDS$score<-as.numeric(tmpStringFrame[,1])
     
     
     #######
@@ -341,7 +272,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     fileName<-mutationBlacklistFile
     
-    testDT<-data.table(reducedFunseqOutputNCDS)
+    testDT<-data.table(reducedFunseqOutputCDS)
     setkeyv(testDT,c("chr","posStart","posEnd"))
     
     dacDT<-fread(fileName)
@@ -358,7 +289,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     if(filterOutBlacklistMutations){
       woBlacklistDT<-testDT[ !list(removeIdx),]
-      reducedFunseqOutputNCDS<-setDF(woBlacklistDT)
+      reducedFunseqOutputCDS<-setDF(woBlacklistDT)
       remove(woBlacklistDT)
       
     }
@@ -373,7 +304,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     # sanity check
     if(FALSE){
       
-      reducedFunseqOutput<-reducedFunseqOutputNCDS  
+      reducedFunseqOutput<-reducedFunseqOutputCDS  
       
       reducedFunseqOutput$index<-paste(reducedFunseqOutput$sampleID,reducedFunseqOutput$chr,paste(reducedFunseqOutput$posStart,reducedFunseqOutput$posEnd,sep="-"),sep=":")
       
@@ -381,7 +312,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
       
       educedFunseqOutput<-reducedFunseqOutput[!duplicatedLine,]
       
-      reducedFunseqOutput<-reducedFunseqOutput[,c(1:28)]
+      reducedFunseqOutput<-reducedFunseqOutput[,c(1:26)]
       
       numOfWhitelistMutations<-nrow(reducedFunseqOutput)
       cat(sprintf("there are %s mutations on the regions of element bed file\n",numOfWhitelistMutations))
@@ -394,36 +325,10 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     cat(sprintf("Add triNucleotideDistribution information\n"))
     
-    triNucleotideDat<-addTriNucleotideDistribution(reducedFunseqOutputNCDS)
+    triNucleotideDat<-addTriNucleotideDistribution(reducedFunseqOutputCDS)
     
-    reducedFunseqOutputNCDS<-cbind(reducedFunseqOutputNCDS,triNucleotideDat)
+    reducedFunseqOutputCDS<-cbind(reducedFunseqOutputCDS,triNucleotideDat)
     
-    tmpDat<-reducedFunseqOutputNCDS
-    
-    ####
-    # Parse motifBR, motifG, and NCENC field
-    ####
-    
-    cat(sprintf("Parse MOTIFBR, MOTIFG, and NECNC annotations\n"))
-    
-    motifBreakFrame<-parseMOTIFBR(tmpDat,useCores)
-    motifBreakFrameSimple<-motifBreakFrame[,c(2,7,9,8)]
-    #motifBreakFrameSimple[!is.na(motifBreakFrameSimple$motifBreakMotifTFName),]
-    
-    motifGainFrame<-parseMOTIFG(tmpDat,useCores)
-    motifGainFrameSimple<-motifGainFrame[,c(1,6,8,7)]
-    #motifGainFrameSimple[!is.na(motifGainFrameSimple$motifGainMotifTFName),]
-    
-    motifAnnotation<-cbind(motifBreakFrameSimple,motifGainFrameSimple)
-    
-    #tmpDatSimple<-tmpDat[,c(1:6,9,12,19,20,22)]
-    
-    ncencFrame<-parseNCENC(tmpDat,useCores)
-    outDf<-cbind(ncencFrame,motifAnnotation)
-    
-    reducedFunseqOutputNCDS<-cbind(tmpDat,outDf)
-    
-    ####
     
     ####
     ## associate replication timing data with each variant
@@ -446,8 +351,8 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     colnames(replicationTimingDF)<-c("chr","start","end","name","signalValue")
     replicationTimingDF$index<-paste(replicationTimingDF$chr,paste(replicationTimingDF$start,replicationTimingDF$end,sep="-"),sep=":")
     
-    reducedFunseqOutputNCDS<-addReplicationTimingSignal(reducedFunseqOutputNCDS,replicationTimingDF)
-    reducedFunseqOutputNCDS<-reducedFunseqOutputNCDS[!is.na(reducedFunseqOutputNCDS$signalValue),]
+    reducedFunseqOutputCDS<-addReplicationTimingSignal(reducedFunseqOutputCDS,replicationTimingDF)
+    reducedFunseqOutputCDS<-reducedFunseqOutputCDS[!is.na(reducedFunseqOutputCDS$signalValue),]
     
     #####
     # Set element-wise replication timing signal boundary
@@ -550,8 +455,186 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     
     ####
+    #  CDS calculation specific section
+    #  Add pfam protein domain information
+    #  Add protein length information
+    ####
     
-    mergeDF<-reducedFunseqOutputNCDS
+    #filePath<-"~/work/Ekta_lab/compositeDriver_data/ensembl_hg37"
+    #fileName<-"hg37_ensembl_txCDSwithProteinLength.txt"
+    #fileName<-file.path(filePath,fileName)  
+    fileName<-proteinLengthFile
+    cdsExonLength<-read.table(fileName,sep="\t",header=TRUE,stringsAsFactors = FALSE)
+    
+    
+    parseVATannotation<-function(vector,index){
+      a2<-strsplit(vector,":")
+      
+      alteredType<-sapply(a2,"[",5)
+      
+      tmp<-sapply(a2,"[",6)
+      tmp<-strsplit(tmp,"\\/")
+      alteredRatio<-(as.numeric(sapply(tmp,"[",1))/as.numeric(sapply(tmp,"[",2)))
+      
+      tmp<-sapply(a2,"[",8)
+      tmp<-strsplit(tmp,"\\.")
+      alteredTranscriptId<-sapply(tmp,"[",1)
+      
+      tmp<-sapply(a2,"[",9)
+      tmp<-strsplit(tmp,"\\_")
+      alteredPos<-sapply(tmp,"[",3)
+      
+      tmp<-sapply(tmp,"[",4)
+      tmp<-strsplit(tmp,"->")
+      refNu<-sapply(tmp,"[",1)
+      altNu<-sapply(tmp,"[",2)
+      
+      tmp<-data.frame(alteredType,alteredRatio,alteredTranscriptId,alteredPos,refNu,altNu,stringsAsFactors = FALSE)
+      maxRatio<-max(tmp$alteredRatio)
+      tmpVector<-tmp[tmp$alteredRatio==maxRatio,]
+      
+      if(nrow(tmpVector)>1){
+        tmpVector<-tmpVector[1,]
+      }
+      
+      tmpVector$index<-index
+      return(tmpVector)
+    }
+      
+      
+    arrangeVATannotation<-function(field,useCores){
+      tmpVector<-{}
+      
+      a1<-strsplit(field,",")
+      
+      tmpVector<-mclapply(1:length(a1), function(x){
+        cat(sprintf("variant:%s /%s\n",x,length(a1)))
+        
+        if(length(a1[[x]])>1){
+          tmpVector[[x]]<-parseVATannotation(a1[[x]],x)
+        }else{
+          
+          if(!is.na(a1[[x]])){
+            tmpVector[[x]]<-parseVATannotation(a1[[x]],x)
+          }else{
+            tmpStr<-rep(NA,6)
+            tmpFrame<-data.frame(t(tmpStr),x,stringsAsFactors = FALSE)
+            colnames(tmpFrame)<-c("alteredType","alteredRatio","alteredTranscriptId","alteredPos","refNu","altNu","index")
+            tmpVector[[x]]<-tmpFrame
+            
+          }
+        }
+      },mc.cores=useCores)
+      
+      #alteredDf<-rbindlist(tmpVector)
+      alteredDf<-rbind.fill(tmpVector)
+      
+      return(alteredDf)
+        
+    }
+      
+    #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018","compositeDriver_input",mutationType)
+    filePath<-file.path(inputFileDir,mutationType)
+    fileName<-paste("vatDF_",tumorType,"_",mutationType,".Rd",sep="")
+    fileName<-file.path(filePath,fileName)  
+    
+    if(file.exists(fileName)){
+      load(fileName)
+    }else{
+      
+      vatDF<-arrangeVATannotation(reducedFunseqOutputCDS$VA,useCores)
+      
+      if( !file.exists(paste(filePath,sep="/")) ){
+        dir.create(paste(filePath,sep=""),recursive=TRUE)
+      }
+      
+      save(vatDF,file=fileName)
+      
+    }
+    ## debug check
+    #tt<-cbind(vatDF,reducedFunseqOutputCDS)
+    
+    ####
+    
+    #filePath<-"~/work/Ekta_lab/compositeDriver_data/cds_data/domainData"
+    #fileName<-"pfam28.9606.processed_w_eValue_cutOff.txt"
+    #fileName<-file.path(filePath,fileName)
+    fileName<-proteinDomainFile
+    domainDF<-read.table(fileName,header=TRUE,sep="\t",stringsAsFactors = FALSE)
+    
+    domainDF<-split(domainDF,domainDF$geneSymbol)
+    
+    #####
+    
+    #geneName<-"CDKN2A"
+    
+    addDomainScore<-function(domainDF,geneDF,useCores=1){
+      
+      variantAnno<-{}
+      
+      nameVector<-unique(names(geneDF))
+      
+      #for(geneName in nameVector){
+      variantAnno<-mclapply(1:length(nameVector), function(x){
+        #variantAnno<-lapply(1:length(nameVector), function(x){
+        
+        geneName<-nameVector[x]
+        #cat(sprintf("name: %s\n",geneName))
+        domainDat<-domainDF[[geneName]]
+        
+        if(!is.null(domainDat)){
+          domainIRanges<-IRanges(start=(domainDat$envelopeStart),
+                                 end=(domainDat$envelopeEnd))
+          mcols(domainIRanges)$names<-domainDat$hmmName
+          
+          variantDat<-geneDF[[geneName]]
+          
+          #splice site debug
+          if(nrow(variantDat[is.na(variantDat$alteredPos),])>0){
+            variantDat[is.na(variantDat$alteredPos),]$alteredPos<-0
+          }
+          
+          variantIRanges<-IRanges(start=(as.numeric(variantDat$alteredPos)),
+                                  end=(as.numeric(variantDat$alteredPos)))
+          
+          hit<-findOverlaps(variantIRanges,domainIRanges)
+          
+          variantDat$domain<-rep(NA,nrow(variantDat))
+          variantDat$domain[queryHits(hit)]<-mcols(domainIRanges)$names[subjectHits(hit)]
+          
+          variantDat$newScore<-variantDat$score
+          #withinDomainIndex<-which(!variantDat$domain %in% "NA" & !variantDat$alteredType %in% "synonymous_variant")
+          withinDomainIndex<-which(!is.na(variantDat$domain) & !variantDat$alteredType %in% "synonymous_variant")
+          if(length(withinDomainIndex)>0){
+            # cds score add one when the variant is located within pfam protein domain 
+            variantDat[withinDomainIndex,]$newScore<-variantDat[withinDomainIndex,]$newScore+1
+          }
+          
+          variantAnno[[geneName]]<-variantDat
+          
+        }else{
+          
+          variantDat<-geneDF[[geneName]]
+          variantDat$domain<-rep(NA,nrow(variantDat))
+          variantDat$newScore<-variantDat$score
+          variantAnno[[geneName]]<-variantDat
+        }
+        
+        #}
+        #})
+      },mc.cores=useCores)
+      
+      names(variantAnno)<-nameVector  
+      
+      #variantAnno<-rbind.fill(variantAnno)
+      
+      return(variantAnno)
+    }
+    
+
+    ####
+    
+    mergeDF<-reducedFunseqOutputCDS
     
     #fileName<-paste(tumorType,"_",mutationType,"_merge_variant_details.txt",sep="")
     #fileName<-file.path(workDir,fileName)
@@ -573,20 +656,28 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
       
       posIndex<-paste(tmpDF$chr,paste(tmpDF$posStart,tmpDF$posEnd,sep="-"),sep=":")
       geneDF<-data.frame(tmpDF$sampleID,posIndex,tmpDF$chr,tmpDF$posStart,
-                         tmpDF$posEnd,tmpDF$GENEparsed,tmpDF$elementName,
-                         tmpDF$ref,tmpDF$alt,
-                         tmpDF$TFPname,tmpDF$TFMname,tmpDF$TFMfullName,
-                         tmpDF$motifBreakMotifTFName,tmpDF$motifGainMotifTFName,
+                         tmpDF$posEnd,tmpDF$GENE,tmpDF$ref,tmpDF$alt,
                          tmpDF$score,tmpDF$RECUR,tmpDF$index,tmpDF$signalValue,
                          tmpDF$tumorType,stringsAsFactors = FALSE)
-      #                     tmpDF$tumorType,stringsAsFactors = FALSE)
+                         #tmpDF$tumorType,stringsAsFactors = FALSE)
       colnames(geneDF)<-c("sampleID","posIndex","chr","posStart",
-                          "posEnd","geneSymbol","elementName",
-                          "ref","alt",
-                          "TFPname","TFMname","TFMfullName",
-                          "motifBreakMotifTFName","motifGainMotifTFName",
-                          "score","recur","triMutIndex","signalValue","tumorType")
+                      "posEnd","geneSymbol","ref","alt",
+                      "score","recur","triMutIndex","signalValue","tumorType")
+
+      geneDF<-cbind(geneDF,vatDF)
+      #kk<-geneDF[geneDF$geneSymbol=="EGFR",]
+    
+      #cdsExonLength$geneWithTranscript<-paste(cdsExonLength$external_gene_name,cdsExonLength$ensembl_transcript_id,sep=":")
+      cdsExonLengthSimple<-cdsExonLength[,c(4,5,7)]
+      colnames(cdsExonLengthSimple)<-c("alteredTranscriptId","cds_length","protein_length")
+      #geneDF0<-merge(geneDF,cdsExonLengthSimple,by="alteredTranscriptId",all.x=TRUE)
       
+      ## some SNV without VA annotation, we will remove them. It may be the problem of VA software
+      geneDF<-merge(geneDF,cdsExonLengthSimple,by="alteredTranscriptId")
+      
+      ## remove splice_variant mutations
+      geneDF<-geneDF[!(geneDF$alteredType %in% "splice_variant"),]
+  
       # debug
       # checkScoreDF<-geneDF[is.na(geneDF$score),]
       # dim(checkScoreDF)
@@ -595,31 +686,18 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
         geneDF[is.na(geneDF$score),]$score<-0
       }
       
-      #######
-      # Section for enhancer unit
-      #######
+      geneNameVector<-unique(geneDF$geneSymbol)
+      geneDF<-split(geneDF,geneDF$geneSymbol)
       
-      #geneNameVector<-unique(geneDF$geneSymbol)
-      #geneDF<-split(geneDF,geneDF$geneSymbol)
-      
-      geneNameVector<-unique(unlist(strsplit(geneDF$geneSymbol,",")))
-      
-      geneDFenhancer<-mclapply(1:length(geneNameVector), function(x){
-        geneName<-geneNameVector[x]
-        tmpFrame<-geneDF[grepl(paste("\\b",geneName,"\\b",sep=""),geneDF$geneSymbol),]
-        tmpFrame$geneSymbol<-geneName
-        return(tmpFrame)
-      },mc.cores=useCores)
-      
-      names(geneDFenhancer)<-geneNameVector
-      
-      #######
+      ## Add new score it variant located within pfam domain 
+      geneDF<-addDomainScore(domainDF,geneDF)
+  
       geneDFpatient<-{}
       
       geneDFpatient<-mclapply(1:length(geneNameVector), function(x){
         #tmpDat<-geneDF[[geneName]][!(duplicated(geneDF[[geneName]]$posIndex)),]
         geneName<-geneNameVector[x]
-        tmpDF<-geneDFenhancer[[geneName]]
+        tmpDF<-geneDF[[geneName]]
         npat<-length(unique(tmpDF$sampleID))
         geneDFpatient[[geneName]]<-npat
       },mc.cores=useCores)
@@ -660,17 +738,36 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
           #for(x in 1:length(geneNameVector)){
           #cat(sprintf("%s\n",x))  
           geneName<-geneNameVector[x]
-          geneDFunique[[geneName]]<-geneDFenhancer[[geneName]][!(duplicated(geneDFenhancer[[geneName]]$posIndex)),]
-          geneDFunique[[geneName]]<-geneDFunique[[geneName]][order(geneDFunique[[geneName]]$posIndex),]
-          recurrenceVector<-table(geneDF[[geneName]]$posIndex)
-        
-          collapsedDF<-mergeVariantPosition(geneDFenhancer[[geneName]],sampleSizeFactor,countsCutOff = 2)
           
+          tmp0DF<-geneDF[[geneName]]
+          tmp0DF$oldScore<-tmp0DF$score
+          tmp0DF$score<-tmp0DF$newScore
+          
+          ## when variant cross multiple seqments of replication timing bins, take mean value.
+          tmp0DF$signalValue<-mean(tmp0DF$signalValue)
+          
+          
+          geneDF[[geneName]]<-tmp0DF
+          
+          geneDFunique[[geneName]]<-geneDF[[geneName]][!(duplicated(geneDF[[geneName]]$posIndex)),]
+          geneDFunique[[geneName]]<-geneDFunique[[geneName]][order(geneDFunique[[geneName]]$posIndex),]
+          
+          #recurrenceVector<-table(geneDF[[geneName]]$posIndex)
+          collapsedDF<-mergeVariantPosition(geneDF[[geneName]],sampleSizeFactor,countsCutOff = 2)
           #geneDFunique[[geneName]]$occurence<-mergedDF[geneDFunique[[geneName]]$posIndex,]$occurence
           #geneDFunique[[geneName]]$compositeScore<-mergedDF[geneDFunique[[geneName]]$posIndex,]$compositeScore
           #geneDFunique[[geneName]]$tumorCounts<-mergedDF[geneDFunique[[geneName]]$posIndex,]$tumorCounts
-          tmpDF<-geneDFunique[[geneName]]
-          geneDFunique[[geneName]]<-cbind(tmpDF[,2:14],collapsedDF[,2:6])
+          tmp2DF<-geneDFunique[[geneName]]
+          #tmp3DF<-cbind(tmp2DF[,2:12],tmp2DF[,14:22])
+          
+          #tmp3DF<-cbind(tmp2DF[,c(1,3:13)],tmp2DF[,15:18])
+          #tmp3DF$oldScore<-tmp2DF$oldScore
+          #geneDFunique[[geneName]]<-cbind(tmp3DF,collapsedDF[,2:7])
+          
+          tmp3DF<-cbind(tmp2DF[,c(1,3:12)],tmp2DF[,15:24])
+          tmp3DF$oldScore<-tmp2DF$oldScore
+          geneDFunique[[geneName]]<-cbind(tmp3DF,collapsedDF[,2:6])
+          
           
           #}
           
@@ -729,8 +826,6 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
       #geneDF<-rbind.fill(geneDF)
       geneDFunique<-rbind.fill(geneDFunique)
       
-      geneDFuniqueEnhancer<-geneDFunique[!(duplicated(geneDFunique$posIndex)),]
-      
       #####
       
       #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
@@ -742,7 +837,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
         
         cat(sprintf("Processing variantTriMutCategoryParsed object for calculation\n"))
         
-        variantTriMutCategoryParsed<-parsePosVariantByTriMutContextWithAnnotation5(geneDFuniqueEnhancer,mutationDistMatrix,useCores=useCores)
+        variantTriMutCategoryParsed<-parsePosVariantByTriMutContextWithAnnotationCDS(geneDFunique,mutationDistMatrix,useCores=useCores)
         
         if( !file.exists(paste(filePath,sep="/")) ){
           dir.create(paste(filePath,sep=""),recursive=TRUE)
@@ -783,17 +878,17 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     #######
     
-      ncdsMutationCheckList<-unique(geneDFunique$geneSymbol)
+      cdsMutationCheckList<-unique(geneDFunique$geneSymbol)
       
       # remove some genes not have replication timing data
-      ncdsMutationCheckList<-intersect(ncdsMutationCheckList,elementReplicationTimingDF$elementName)
+      cdsMutationCheckList<-intersect(cdsMutationCheckList,elementReplicationTimingDF$elementName)
       
-      #ncdsMutationCheckList<-c("TERT","WDR74","PLEKHS1","LEPROTL1","TBC1D12","MYH14","TRPM4","CHODL","ZSCAN5B","ZNF595","XKR4","MMS19")
-      #addList<-c("SDCCAG8","LRRC4C","ALG10","ALG10B","HIST1H2AJ","HDAC9","TTI2","EMC2","MGST3","PAN2","HIST1H2AM","ZNF143")
+      #ncdsMutationCheckList<-c("TBX5","TP53","NRXN1","ITGB6","GRIA2","LATS1","YES1","DPP4","PAX7","EXOC1","NOS3","DST","BRCA2","BRCA1","CDK12","RB1")
+      #ncdsMutationCheckList<-c("ABCB10","AKT1","LAMA1","LRP2","PIK3CA","SF3B1","TP53","ZNF263","IARS","GATA3","COPB2","CFTR","ZAP70","ALK","NCOR1","PTEN","ARID1A","CBFB")
+      #ncdsMutationCheckList<-c("TP53","SPOP","FOXA1","PTEN","RB1","ABCC4","CSMD3","BRINP2","UMODL1")
+  
       
-      #ncdsMutationCheckList<-c(ncdsMutationCheckList,addList)
-      
-      numOfgeneCheck<-length(ncdsMutationCheckList)
+      numOfgeneCheck<-length(cdsMutationCheckList)
       
       cat(sprintf("%s elements have alterations\n",numOfgeneCheck))
       
@@ -855,27 +950,20 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
         fileName<-file.path(filePath,fileName)
         
         #cat(sprintf("%s/%s\t",k,numOfgeneCheck),file=fileName,append=TRUE)        
-        cat(sprintf("%s/%s\ttype:%s\tgene:%s\n",k,numOfgeneCheck,mutationType,ncdsMutationCheckList[k]),file=fileName,append=TRUE)
+        cat(sprintf("%s/%s\ttype:%s\tgene:%s\n",k,numOfgeneCheck,mutationType,cdsMutationCheckList[k]),file=fileName,append=TRUE)
         
         #cat(sprintf("%s/%s\t",k,numOfgeneCheck))        
         #cat(sprintf("type:%s\tgene:%s\n",mutationType,ncdsMutationCheckList[k]))
         
-        numOfAlterationPos<-compositeScoreDF[rownames(compositeScoreDF) %in% ncdsMutationCheckList[k],]$uniqueVariantPos
-        numOfAlteration<-sum(geneDFunique[geneDFunique$geneSymbol %in% ncdsMutationCheckList[k],]$occurence)
-        numOfPatient<-geneDFpatient[[ncdsMutationCheckList[k]]]
-        compositeScore<-compositeScoreDF[rownames(compositeScoreDF) %in% ncdsMutationCheckList[k],]$compositeScoreScaled
+        numOfAlterationPos<-compositeScoreDF[rownames(compositeScoreDF) %in% cdsMutationCheckList[k],]$uniqueVariantPos
+        numOfAlteration<-sum(geneDFunique[geneDFunique$geneSymbol %in% cdsMutationCheckList[k],]$occurence)
+        numOfPatient<-geneDFpatient[[cdsMutationCheckList[k]]]
+        compositeScore<-compositeScoreDF[rownames(compositeScoreDF) %in% cdsMutationCheckList[k],]$compositeScoreScaled
         
-        gname<-ncdsMutationCheckList[k]
+        gname<-cdsMutationCheckList[k]
         #gname<-"TERT"
         #a1<-geneDFunique[geneDFunique$geneSymbol==gname,]
-        #a1<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$geneSymbol==gname,]
-        
-        selectedPosition<-unique(geneDFunique[geneDFunique$geneSymbol==gname,]$posIndex)
-        
-        a1<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$posIndex %in% selectedPosition,]
-        a1$geneSymbol<-rep(gname,nrow(a1))
-        
-        
+        a1<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$geneSymbol==gname,]
         #reSamplePosSize<-nrow(a1)
         #compositeScore[k]<-sum(a1$compositeScore)
         
@@ -901,7 +989,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
         #a2<-geneDFunique[geneDFunique$geneSymbol!=gname,]
         #a2<-a2[!is.na(a2$signalValue),]
         
-        a2<-variantTriMutCategoryParsed[!(variantTriMutCategoryParsed$posIndex %in% selectedPosition),]
+        a2<-variantTriMutCategoryParsed[variantTriMutCategoryParsed$geneSymbol!=gname,]
         a2<-a2[!is.na(a2$signalValue),]
         
         #####
@@ -963,17 +1051,9 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
         numOfAboveCScore<-result$numOfAboveCScore
         reSampleSize<-result$reSampleSize
         
-        #######
-        
-        strTmp<-unique(variantTriMutCategory$elementName)
-        elementNameMerged<-paste(strTmp,collapse=",")
-        numOfAlteredElement<-length(unique(strTmp))
-        
-        ######
-        
-        tmpResult<-data.frame(elementNameMerged,numOfAlteredElement,gname,numOfAlterationPos,numOfAlteration,numOfPatient,compositeScore,numOfAboveCScore,reSampleSize,pValue,stringsAsFactors = FALSE)
+        tmpResult<-data.frame(gname,numOfAlterationPos,numOfAlteration,numOfPatient,compositeScore,numOfAboveCScore,reSampleSize,pValue,stringsAsFactors = FALSE)
         #colnames(tmpResult)<-c("geneSymbol","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue")
-        colnames(tmpResult)<-c("enhancerUnitPos","numOfAlteredElements","elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue")
+        colnames(tmpResult)<-c("elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue")
         
         
         #filePath<-file.path("~/work/Ekta_lab/JasonWong_dataset/compositeFunSeq_result_triMut_match",tumorType)
@@ -1001,7 +1081,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
       outputDf<-outputDf[order(outputDf$pValue),]
       outputDf$qValue<-p.adjust(outputDf$pValue,method = "BH")
       #colnames(outputDf)<-c("geneSymbol","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
-      colnames(outputDf)<-c("enhancerUnitPos","numOfAlteredElements","elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
+      colnames(outputDf)<-c("elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
       
       
       fileName<-paste(tumorType,"_outputDf_",mutationType,"_",groupName,"_with_RT_correction_similarity_",replicationTimingCutOff,"_triMut_match_distribution_task_",taskNum,"_iter_",reSampleNum,"_.txt",sep="")

@@ -43,6 +43,8 @@
 #' @concept CNCDriver
 #' @export
 #' @import doRNG
+#' @import IRanges
+#' @import GenomicRanges
 #' @importFrom plyr rbind.fill
 #' @importFrom stats p.adjust
 #' @importFrom utils write.table

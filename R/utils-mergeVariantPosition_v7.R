@@ -1,6 +1,6 @@
 #' mergeVariantPosition
 #'
-#' @param geneDF list of geneDF data frame
+#' @param datDF list of geneDF data frame
 #' @param sizeFactor sizeFactor vector, a parameter only used in pancancer calculation. A sizeFactor for total mutations counts normalization among multiple cancer types
 #' @param countsCutOff default is two, a parameter only used in pancancer calculation. Scale the mutation occurence value when the counts is equal or above countsCutOff
 #'

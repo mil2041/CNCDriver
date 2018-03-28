@@ -7,11 +7,11 @@
 mergeVariantPosition(datDF, sizeFactor, countsCutOff = 2)
 }
 \arguments{
+\item{datDF}{list of geneDF data frame}
+
 \item{sizeFactor}{sizeFactor vector, a parameter only used in pancancer calculation. A sizeFactor for total mutations counts normalization among multiple cancer types}
 
 \item{countsCutOff}{default is two, a parameter only used in pancancer calculation. Scale the mutation occurence value when the counts is equal or above countsCutOff}
-
-\item{geneDF}{list of geneDF data frame}
 }
 \value{
 collapsedDF data frame
