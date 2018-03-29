@@ -107,8 +107,14 @@ getCDSPvalue<-function(inputFileDir,outputFileDir,
     load(fileName)
     
     #####
-    ## load promoter bed file
+    ## load CDS bed file
     #####
+    
+    ###
+    ## not load pre-defined bed file. We used cds definitions from VAT.
+    ## 
+    ###
+    if(FALSE){
     
     cat(sprintf("Load elementBedfile\n"))
     #filePath<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode"
@@ -124,8 +130,11 @@ getCDSPvalue<-function(inputFileDir,outputFileDir,
     #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
     
     
+    
     ## extract mutations overlap with pre-defined element regions
     reducedFunseqOutputCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputCDS)
+    
+    }
     
     ######
     # load triNucleotideDistribution file
@@ -389,8 +398,15 @@ getCDSPvalue<-function(inputFileDir,outputFileDir,
       #signalConst<-elementReplicationTimingDF$signalValue
       #names(signalConst)<-elementReplicationTimingDF$elementName
       
+      # the original formula used in the cds calculation
+      #maxValue<-max(replicationTimingDF$signalValue)
+      #minValue<-min(replicationTimingDF$signalValue)
+      
+      # the formula used in promoter and other elements
       maxValue<-max(elementReplicationTimingDF$signalValue)
       minValue<-min(elementReplicationTimingDF$signalValue)
+      
+      
       interval<-0.5*(maxValue-minValue)*replicationTimingCutOff
       
       #signalUpper<-rep(maxValue,nrow(elementReplicationTimingDF))
