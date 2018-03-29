@@ -104,7 +104,7 @@ For any questions, comments and suggestions, please email
 * ekk2003 [at] med.cornell.edu 
 * mil2041 [at] med.cornell.edu
 
-Copyright © 2016-2017 Ekta Khurana Lab, WCMC
+Copyright © 2016-2018 Ekta Khurana Lab, WCMC
 
 ### License 
 This project is licensed under the CC BY-NC 4.0 

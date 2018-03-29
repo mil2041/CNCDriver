@@ -41,8 +41,10 @@ mutationBlacklistFile<-"~/work/Ekta_lab/compositeDriver_data/genome_blacklist/wg
 replicationTimingGenomeBinnedFile<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows.txt"
 
 
-cdsRegionBedFile<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode/gencode.v19.cds.bed"
-replicationTimingElementBinnedFilePromoter<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_cds.txt"
+codingRegionBedFile<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode/gencode.v19.cds.bed"
+proteinDomainFile<-"~/work/Ekta_lab/compositeDriver_data/cds_data/domainData/pfam28.9606.processed_w_eValue_cutOff.txt"
+proteinLengthFile<-"~/work/Ekta_lab/compositeDriver_data/ensembl_hg37/hg37_ensembl_txCDSwithProteinLength.txt"
+replicationTimingElementBinnedFileCDS<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_cds.txt"
 
 
 promoterRegionBedFile<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode/gencode.v19.promoter.bed"
@@ -61,10 +63,18 @@ preProcessVCF(annotatedInput,functionalImpactScoreCDS,functionalImpactScoreNonCo
 
 #####
 
-mutationType<-"CDS"
-cdsOutputDf<-getCDSpvalue(outputDir,tumorType,mutationType,
-                          reSampleIter=reSampleIter,
-                          seedNum=seedNum,debugMode=debugMode)
+mutationType<-"cds"
+elementKeyWord<-"CDS"
+
+cdsOutputDf<-getCDSPvalue(inputFileDir,outputFileDir,
+                          codingRegionBedFile,elementKeyWord,
+                          proteinDomainFile,proteinLengthFile,
+                          triNucleotideDistributionFile,
+                          filterOutBlacklistMutations,mutationBlacklistFile,
+                          replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFileCDS,
+                          tumorType,mutationType,cellType,replicationTimingCutOff,
+                          seedNum,reSampleIterations,reRunPvalueCutOff,
+                          useCores,taskNum,unitSize,debugMode)
 
 #####
 
