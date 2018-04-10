@@ -103,7 +103,7 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     load(fileName)
     
     #####
-    ## load enhancer DRM bed file
+    ## load enhancer bed or DRM bed file
     #####
     
     cat(sprintf("Load elementBedfile\n"))
@@ -118,7 +118,12 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     #######
     
     enhancerDF<-fread(elementBedfileName,header=FALSE,sep="\t",data.table=FALSE)
-    colnames(enhancerDF)<-c("chr","posStart","posEnd","geneSymbol","score","method")
+    if(ncol(enhancerDF)==6){
+      cat(sprintf("Load DRM style enhancer bed file\n"))
+      colnames(enhancerDF)<-c("chr","posStart","posEnd","geneSymbol","score","method")
+    }else{
+      colnames(enhancerDF)<-c("chr","posStart","posEnd","geneSymbol")
+    }
     
     ## add +1 for posStart from bed format 
     enhancerDF$posStart<-enhancerDF$posStart+1
@@ -433,9 +438,9 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     cat(sprintf("Add replication timing signal for cellType %s\n",cellType))
     
-    filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
-    fileName<-"UW_RepliSeq_wavelet_1Mb_windows.txt"
-    fileName<-file.path(filePath,fileName)
+    #filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
+    #fileName<-"UW_RepliSeq_wavelet_1Mb_windows.txt"
+    #fileName<-file.path(filePath,fileName)
     
     fileName<-replicationTimingGenomeBinnedFile
     
@@ -456,14 +461,19 @@ getEnhancerUnitPvalue<-function(inputFileDir,outputFileDir,
     
     #filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
     #fileName<-"UW_RepliSeq_wavelet_1Mb_windows_promoter.txt"
+    if(FALSE){
+      fileName<-replicationTimingElementBinnedFile
+      
+      elementReplicationTimingDF<-fread(fileName,header=TRUE,sep="\t",stringsAsFactors=FALSE,data.table=FALSE)
+      
+      selectedColumn<-which(colnames(elementReplicationTimingDF) %in% cellType)
+      elementReplicationTimingDF<-elementReplicationTimingDF[,c(1,selectedColumn)]
+      colnames(elementReplicationTimingDF)<-c("elementName","signalValue")
+    }
     
-    fileName<-replicationTimingElementBinnedFile
+    elementReplicationTimingDF<-makeElementReplicationTiming(replicationTimingDF,enhancerDF,useCores)
     
-    elementReplicationTimingDF<-fread(fileName,header=TRUE,sep="\t",stringsAsFactors=FALSE,data.table=FALSE)
     
-    selectedColumn<-which(colnames(elementReplicationTimingDF) %in% cellType)
-    elementReplicationTimingDF<-elementReplicationTimingDF[,c(1,selectedColumn)]
-    colnames(elementReplicationTimingDF)<-c("elementName","signalValue")
     
     #replicationTimingCutOff<-0.3
     
