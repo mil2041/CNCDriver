@@ -1,7 +1,7 @@
 Package: CNCDriver
 Type: Package
 Title: CNCDriver
-Version: 0.1.1
+Version: 0.1.2
 Author: Eric Minwei Liu [aut,cre], Priyanka Dhingra [aut]
 Maintainer: Eric Minwei Liu <emliu.research@gmail.com>
 Description: CNCDriver
@@ -15,6 +15,7 @@ Depends:
     VariantAnnotation,
     plyr,
     stringr,
+    dbscan,
     doRNG,
     doParallel,
     parallel,
