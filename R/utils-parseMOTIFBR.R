@@ -36,13 +36,18 @@ parseMOTIFBR<-function(dat,useCores=1){
   #a1<-strsplit(dat,",")
   
   a0<-dat$MOTIFBR
+  
+  ## TODO: "NA" bug in the VariantAnnotation package?
+  a0[a0=="NA"]<-NA
+  
   posIndex<-paste(dat$chr,paste(dat$posStart,dat$posEnd,sep="-"),sep=":")
   
   a1<-str_extract_all(a0,"([^,][A-Z0-9,_]+#[A-Za-z0-9_.:-]+#[0-9]+#[0-9]+#[+-]+#[0-9]+#[0-9.]+#[0-9.]+)")
   #a1<-unlist(a1)
   
   tmp<-mclapply(1:length(a1), function(x){
-    #cat(sprintf("gene:%s / %s\n",i,length(a1)))  
+  #tmp<-lapply(1:length(a1), function(x){
+    #cat(sprintf("gene:%s / %s\n",x,length(a1)))  
     
     t3 <- strsplit(a1[[x]], "\\#")
     
@@ -106,7 +111,7 @@ parseMOTIFBR<-function(dat,useCores=1){
     
     
     return(tmp)
-    
+  #})  
   },mc.cores=useCores)
   
   #motifBreakParsed<-list(fullName=motifBreakFullName,familyName=motifBreakFamilyName,strand=motifBreakStrand)
