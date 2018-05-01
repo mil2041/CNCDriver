@@ -1,9 +1,9 @@
-#' Run CNCDriver lincRNA p-value calculation
+#' Run CNCDriver 5'UTR p-value calculation
 #'
 #' @param inputFileDir The path for prepared R object file [for example,reducedFunseqOutputNCDS_GBM.Rd]
 #' @param outputFileDir The path for output files
-#' @param lincRNARegionBedFile The defintion of promoter regions in bed file format
-#' @param elementKeyWord Default is "lincRNA", the keyword of lincRNA annotation in FunSeq2
+#' @param promoterRegionBedFile The defintion of promoter regions in bed file format
+#' @param elementKeyWord Default is "Promoter", the keyword of promoter annotation in FunSeq2
 #' @param triNucleotideDistributionFile Cancer type specific mutation counts in 96 trinucleotide category  
 #' @param filterOutBlacklistMutations TRUE or FALSE
 #' @param mutationBlacklistFile The file for mutation blacklist regions
@@ -50,14 +50,14 @@
 #' @importFrom utils write.table
 #' @importFrom data.table data.table
 #' 
-getLincRNAPvalue<-function(inputFileDir,outputFileDir,
-                            lincRNARegionBedFile,elementKeyWord="lincRNA",
+get5utrPvalue<-function(inputFileDir,outputFileDir,
+                            promoterRegionBedFile,elementKeyWord="UTR",
                             triNucleotideDistributionFile,
                             filterOutBlacklistMutations,mutationBlacklistFile,
                             replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFile,
                             tumorType,mutationType,cellType,replicationTimingCutOff,
                             seedNum=42,reSampleIterations,reRunPvalueCutOff=0.1,
-                            useCores,taskNum,unitSize,debugMode=FALSE){
+                            useCores=1,taskNum=0,unitSize,debugMode=FALSE){
 
 
     #library(data.table)
@@ -109,14 +109,16 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
     cat(sprintf("Load elementBedfile\n"))
     #filePath<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode"
     #fileName<-"gencode.v19.promoter.bed"
-    fileName<-lincRNARegionBedFile
+    fileName<-promoterRegionBedFile
     
-    elementBedfileName<-file.path(lincRNARegionBedFile)
+    elementBedfileName<-file.path(promoterRegionBedFile)
     #reducedFunseqOutput<-reducedFunseqOutputNCDS
+    
     
     elementBedfile<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
     colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
     #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
+    
     
     ## extract mutations overlap with pre-defined element regions
     reducedFunseqOutputNCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputNCDS)
@@ -245,30 +247,9 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
       
       return(geneSymbol)  
     }
-
-    parseFunseqNCENCField<-function(field,keyword,useCores=1){
-      geneSymbol<-{}
-      a1<-strsplit(field,",")
-      
-      tmpStr<-mclapply(1:length(a1), function(x){
-        #cat(sprintf("gene:%s\n",i))  
-        idx <- which(grepl(keyword, a1[[x]]))
-        
-        t3 <- strsplit(a1[[x]][idx], "\\[")    
-        geneSymbol[x]<-substr(t3[[1]][2],1,nchar(t3[[1]][2])-2)
-        
-      },mc.cores=useCores)
-      
-      geneSymbol<-unlist(tmpStr)
-      
-      return(geneSymbol)  
-    }
     
-        
-    cat(sprintf("Start parsing NCENC field annotations to get lincRNA name\n"))
-    #reducedFunseqOutputNCDS$GENEparsed<-parseFunseqNCENCField(field=reducedFunseqOutputNCDS$NCENC,keyword=elementKeyWord,useCores=1)
-    reducedFunseqOutputNCDS$GENEparsed<-reducedFunseqOutputNCDS$name
-    
+    cat(sprintf("Start parsing GENE field annotations\n"))
+    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
     
     tmpString<-strsplit(as.character(reducedFunseqOutputNCDS$NCDS),":",fixed=TRUE)
     tmpStringFrame<-data.frame(do.call("rbind",tmpString),stringsAsFactors=FALSE)
@@ -379,9 +360,9 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
     
     cat(sprintf("Add replication timing signal for cellType %s\n",cellType))
     
-    #filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
-    #fileName<-"UW_RepliSeq_wavelet_1Mb_windows.txt"
-    #fileName<-file.path(filePath,fileName)
+    filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
+    fileName<-"UW_RepliSeq_wavelet_1Mb_windows.txt"
+    fileName<-file.path(filePath,fileName)
     
     fileName<-replicationTimingGenomeBinnedFile
     

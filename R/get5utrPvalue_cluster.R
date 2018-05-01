@@ -1,9 +1,11 @@
-#' Run CNCDriver lincRNA p-value calculation
+#' Run CNCDriver 5'UTR p-value calculation with mutation pre-filtering
 #'
 #' @param inputFileDir The path for prepared R object file [for example,reducedFunseqOutputNCDS_GBM.Rd]
 #' @param outputFileDir The path for output files
-#' @param lincRNARegionBedFile The defintion of promoter regions in bed file format
-#' @param elementKeyWord Default is "lincRNA", the keyword of lincRNA annotation in FunSeq2
+#' @param promoterRegionBedFile The defintion of promoter regions in bed file format
+#' @param elementKeyWord Default is "Promoter", the keyword of promoter annotation in FunSeq2
+#' @param minPoints default is 2 [ unit: samples ]  
+#' @param dRadius default is 50 [ unit: bp ]
 #' @param triNucleotideDistributionFile Cancer type specific mutation counts in 96 trinucleotide category  
 #' @param filterOutBlacklistMutations TRUE or FALSE
 #' @param mutationBlacklistFile The file for mutation blacklist regions
@@ -50,14 +52,15 @@
 #' @importFrom utils write.table
 #' @importFrom data.table data.table
 #' 
-getLincRNAPvalue<-function(inputFileDir,outputFileDir,
-                            lincRNARegionBedFile,elementKeyWord="lincRNA",
+get5utrPvalueWithPreFilter<-function(inputFileDir,outputFileDir,
+                            promoterRegionBedFile,elementKeyWord="UTR",
+                            minPoints=2,dRadius=50,
                             triNucleotideDistributionFile,
                             filterOutBlacklistMutations,mutationBlacklistFile,
                             replicationTimingGenomeBinnedFile,replicationTimingElementBinnedFile,
                             tumorType,mutationType,cellType,replicationTimingCutOff,
                             seedNum=42,reSampleIterations,reRunPvalueCutOff=0.1,
-                            useCores,taskNum,unitSize,debugMode=FALSE){
+                            useCores=1,taskNum=0,unitSize,debugMode=FALSE){
 
 
     #library(data.table)
@@ -109,14 +112,16 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
     cat(sprintf("Load elementBedfile\n"))
     #filePath<-"~/work/Ekta_lab/FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode"
     #fileName<-"gencode.v19.promoter.bed"
-    fileName<-lincRNARegionBedFile
+    fileName<-promoterRegionBedFile
     
-    elementBedfileName<-file.path(lincRNARegionBedFile)
+    elementBedfileName<-file.path(promoterRegionBedFile)
     #reducedFunseqOutput<-reducedFunseqOutputNCDS
+    
     
     elementBedfile<-read.table(elementBedfileName,sep="\t",header=FALSE,stringsAsFactors = FALSE)
     colnames(elementBedfile)<-c("chr","posStart","posEnd","name")
     #colnames(dat)<-c("chr","posStart","posEnd","name","score","strand","thickStart","thickEnd","itemRgb","blockCount","blockSizes","blockStarts")
+    
     
     ## extract mutations overlap with pre-defined element regions
     reducedFunseqOutputNCDS<-extractElementMutations(elementBedfile,reducedFunseqOutputNCDS)
@@ -245,30 +250,9 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
       
       return(geneSymbol)  
     }
-
-    parseFunseqNCENCField<-function(field,keyword,useCores=1){
-      geneSymbol<-{}
-      a1<-strsplit(field,",")
-      
-      tmpStr<-mclapply(1:length(a1), function(x){
-        #cat(sprintf("gene:%s\n",i))  
-        idx <- which(grepl(keyword, a1[[x]]))
-        
-        t3 <- strsplit(a1[[x]][idx], "\\[")    
-        geneSymbol[x]<-substr(t3[[1]][2],1,nchar(t3[[1]][2])-2)
-        
-      },mc.cores=useCores)
-      
-      geneSymbol<-unlist(tmpStr)
-      
-      return(geneSymbol)  
-    }
     
-        
-    cat(sprintf("Start parsing NCENC field annotations to get lincRNA name\n"))
-    #reducedFunseqOutputNCDS$GENEparsed<-parseFunseqNCENCField(field=reducedFunseqOutputNCDS$NCENC,keyword=elementKeyWord,useCores=1)
-    reducedFunseqOutputNCDS$GENEparsed<-reducedFunseqOutputNCDS$name
-    
+    cat(sprintf("Start parsing GENE field annotations\n"))
+    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
     
     tmpString<-strsplit(as.character(reducedFunseqOutputNCDS$NCDS),":",fixed=TRUE)
     tmpStringFrame<-data.frame(do.call("rbind",tmpString),stringsAsFactors=FALSE)
@@ -379,9 +363,9 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
     
     cat(sprintf("Add replication timing signal for cellType %s\n",cellType))
     
-    #filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
-    #fileName<-"UW_RepliSeq_wavelet_1Mb_windows.txt"
-    #fileName<-file.path(filePath,fileName)
+    filePath<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed"
+    fileName<-"UW_RepliSeq_wavelet_1Mb_windows.txt"
+    fileName<-file.path(filePath,fileName)
     
     fileName<-replicationTimingGenomeBinnedFile
     
@@ -542,6 +526,8 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
       geneNameVector<-unique(geneDF$geneSymbol)
       geneDF<-split(geneDF,geneDF$geneSymbol)
       
+      #####
+      
       geneDFpatient<-{}
       
       geneDFpatient<-mclapply(1:length(geneNameVector), function(x){
@@ -560,58 +546,171 @@ getLincRNAPvalue<-function(inputFileDir,outputFileDir,
       uniqueVariantPos<-{}
       
       ####
+      if(TRUE){
+        
+          #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
+          filePath<-file.path(inputFileDir,mutationType)
+          fileName<-paste("geneDFunique_",tumorType,"_",mutationType,".Rd",sep="")
+          fileName<-file.path(filePath,fileName)  
+          
+          if(file.exists(fileName)){
+            
+            cat(sprintf("Load %s\n",fileName))
+            load(fileName)
+            
+          }else{  
+            
+            cat(sprintf("Processing geneDFunique object for calculation\n"))
+            
+            geneDFunique<-{}
+            
+            ## this number is 1 for single cancer type calculation
+            ## A correction factor only used in pancancer calculation
+            if(TRUE){
+             sampleSizeFactor<-1
+             names(sampleSizeFactor)<-tumorType
+            }
+            
+            geneDFunique<-mclapply(1:length(geneNameVector), function(x){
+              #geneDFunique<-mclapply(1:6, function(x){
+              #for(x in 1:length(geneNameVector)){
+              #cat(sprintf("%s\n",x))  
+              geneName<-geneNameVector[x]
+              geneDFunique[[geneName]]<-geneDF[[geneName]][!(duplicated(geneDF[[geneName]]$posIndex)),]
+              geneDFunique[[geneName]]<-geneDFunique[[geneName]][order(geneDFunique[[geneName]]$posIndex),]
+              recurrenceVector<-table(geneDF[[geneName]]$posIndex)
+            
+              collapsedDF<-mergeVariantPosition(geneDF[[geneName]],sampleSizeFactor,countsCutOff = 2)
+              
+              #geneDFunique[[geneName]]$occurence<-mergedDF[geneDFunique[[geneName]]$posIndex,]$occurence
+              #geneDFunique[[geneName]]$compositeScore<-mergedDF[geneDFunique[[geneName]]$posIndex,]$compositeScore
+              #geneDFunique[[geneName]]$tumorCounts<-mergedDF[geneDFunique[[geneName]]$posIndex,]$tumorCounts
+              tmpDF<-geneDFunique[[geneName]]
+              geneDFunique[[geneName]]<-cbind(tmpDF[,2:13],collapsedDF[,2:6])
+              
+              #}
+              
+            },mc.cores=useCores)
+            
+            names(geneDFunique)<-geneNameVector
+            
+            if( !file.exists(paste(filePath,sep="/")) ){
+              dir.create(paste(filePath,sep=""),recursive=TRUE)
+            }
+            
+            save(geneDFunique,file=fileName)
+          }
+    
+      }
+    
+      
+      ########
+      # additional filter
+      ########
+      
       #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
       filePath<-file.path(inputFileDir,mutationType)
-      fileName<-paste("geneDFunique_",tumorType,"_",mutationType,".Rd",sep="")
+      fileName<-paste("geneDFcluster_",tumorType,"_",mutationType,".Rd",sep="")
       fileName<-file.path(filePath,fileName)  
       
       if(file.exists(fileName)){
         
-        cat(sprintf("Load %s\n",fileName))
         load(fileName)
         
-      }else{  
+      }else{
         
-        cat(sprintf("Processing geneDFunique object for calculation\n"))
+        #minPoints<-2
+        #dRadius<-50
         
-        geneDFunique<-{}
+        cat(sprintf("dbscan cluster parameter: minPoints:%s, dRadius:%s\n",minPoints,dRadius))
+        
+        geneDFcluster<-{}
+        
+        cat(sprintf("Processing geneDFcluster object for calculation\n"))
         
         ## this number is 1 for single cancer type calculation
         ## A correction factor only used in pancancer calculation
         if(TRUE){
-         sampleSizeFactor<-1
-         names(sampleSizeFactor)<-tumorType
+          sampleSizeFactor<-1
+          names(sampleSizeFactor)<-tumorType
         }
         
-        geneDFunique<-mclapply(1:length(geneNameVector), function(x){
+        geneDFcluster<-mclapply(1:length(geneNameVector), function(x){
+          #geneDFcluster<-lapply(1:length(geneNameVector), function(x){
           #geneDFunique<-mclapply(1:6, function(x){
           #for(x in 1:length(geneNameVector)){
           #cat(sprintf("%s\n",x))  
           geneName<-geneNameVector[x]
-          geneDFunique[[geneName]]<-geneDF[[geneName]][!(duplicated(geneDF[[geneName]]$posIndex)),]
-          geneDFunique[[geneName]]<-geneDFunique[[geneName]][order(geneDFunique[[geneName]]$posIndex),]
-          recurrenceVector<-table(geneDF[[geneName]]$posIndex)
-        
-          collapsedDF<-mergeVariantPosition(geneDF[[geneName]],sampleSizeFactor,countsCutOff = 2)
           
-          #geneDFunique[[geneName]]$occurence<-mergedDF[geneDFunique[[geneName]]$posIndex,]$occurence
-          #geneDFunique[[geneName]]$compositeScore<-mergedDF[geneDFunique[[geneName]]$posIndex,]$compositeScore
-          #geneDFunique[[geneName]]$tumorCounts<-mergedDF[geneDFunique[[geneName]]$posIndex,]$tumorCounts
-          tmpDF<-geneDFunique[[geneName]]
-          geneDFunique[[geneName]]<-cbind(tmpDF[,2:13],collapsedDF[,2:6])
+          tmp0DF<-geneDF[[geneName]]
           
+          #tmp0DF$oldScore<-tmp0DF$score
+          #tmp0DF$score<-tmp0DF$newScore
+          
+          ## when variant cross multiple seqments of replication timing bins, take mean value.
+          tmp0DF$signalValue<-mean(tmp0DF$signalValue)
+          
+          tmpDFdbscan<-data.frame(tmp0DF$posStart,rep(1,nrow(tmp0DF)),stringsAsFactors = FALSE)
+          colnames(tmpDFdbscan)<-c("posStart","dummy")
+          
+          #dRadius<-(max(tmpDFdbscan$posStart)-min(tmpDFdbscan$posStart))/nrow(tmpDFdbscan)
+          dbscanOut<-dbscan(tmpDFdbscan,eps=dRadius,minPts = minPoints)
+          
+          tmpDFdbscan$cluster<-dbscanOut$cluster
+          table(tmpDFdbscan$cluster)
+          
+          if(FALSE){
+            plot(tmpDFdbscan$pos,tmpDFdbscan$cluster,col=tmpDFdbscan$cluster+1,pch=20)
+            points(tmpDFdbscan[tmpDFdbscan$cluster==0,]$pos,tmpDFdbscan[tmpDFdbscan$cluster==0,]$cluster,col="grey",pch=20)
+          }
+          
+          tmpDFdbscan<-tmpDFdbscan[order(tmpDFdbscan$posStart),]
+          tmpDFdbscan<-tmpDFdbscan[!duplicated(tmpDFdbscan$posStart),]
+          
+          tmp0DF<-merge(tmp0DF,tmpDFdbscan,all.x=TRUE)
+          
+          tmp0DF<-tmp0DF[,c(2:4,1,5:18,20)]
+          #tmp0DFoutlier<-tmp0DF[tmp0DF$cluster==0,]
+          
+          # cluster 0 as outlier
+          #tmp0DF<-tmp0DF[tmp0DF$cluster!=0,]
+          
+          #if(sum(tmp0DF$cluster!=0)>0){
+          geneDFcluster[[geneName]]<-mergeVariantPositionElementClusterV2(tmp0DF,sampleSizeFactor,countsCutOff = 2)
+          #}else{
+          #  geneDFcluster[[geneName]]<-{}
           #}
           
+          
+          #})    
         },mc.cores=useCores)
-        
-        names(geneDFunique)<-geneNameVector
+        names(geneDFcluster)<-geneNameVector
         
         if( !file.exists(paste(filePath,sep="/")) ){
           dir.create(paste(filePath,sep=""),recursive=TRUE)
         }
         
-        save(geneDFunique,file=fileName)
+        save(geneDFcluster,file=fileName)
+        
       }
+      
+      
+      
+      geneDFcluster<-rbind.fill(geneDFcluster)
+      geneNameVector<-unique(geneDFcluster$geneSymbol)
+      
+      geneDFcluster<-split(geneDFcluster,geneDFcluster$geneSymbol)
+      
+      #geneDFbackup<-geneDF
+      #geneDF<-geneDFcluster
+      #geneNameVector_backup<-geneNameVector
+      #geneNameVector<-names(geneDF)
+      
+      geneDFunique<-geneDFcluster
+      
+      #####
+      
+      geneDFpatient<-geneDFpatient[geneNameVector]
       
       #####
       
