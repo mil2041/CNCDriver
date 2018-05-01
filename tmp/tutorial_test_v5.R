@@ -55,7 +55,7 @@ replicationTimingElementBinnedFilePromoter<-"~/work/Ekta_lab/compositeDriver_dat
 
 
 utr5primeRegionBedFile<-"~/work/Ekta_lab/TCGA_LUAD_WGS_AWG/FunSeq2/data_context_PCAWG_checked/gencode/gencode.v19.5utr.PCAWG_OCT_2016.bed"
-replicationTimingElementBinnedFileUTR4prime<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_5UTRs_PCAWG_OCT_2016.txt"
+replicationTimingElementBinnedFileUTR5prime<-"~/work/Ekta_lab/compositeDriver_data/replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_5UTRs_PCAWG_OCT_2016.txt"
 
 
 utr3primeRegionBedFile<-"~/work/Ekta_lab/TCGA_LUAD_WGS_AWG/FunSeq2/data_context_PCAWG_checked/gencode/gencode.v19.3utr.PCAWG_OCT_2016.bed"
