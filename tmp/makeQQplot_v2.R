@@ -174,7 +174,7 @@ fileName<-paste(tumorType,"_",mutationType,".pdf",sep="")
 fileName<-file.path(filePath,fileName)
 
 #ggsave(paste(filePath,"/",runMethod,"_",tumorType,"_",mutationType,"_",groupName,"_qqplot_iter_",reSampleNum,"_RT_",replicationTimingCutOff,"_q_threshold_",threshold,"_w_labels.png",sep=""),width=140,height=133,unit="mm",dpi=120)
-ggsave(paste(filePath,"/",runMethod,"_",tumorType,"_",mutationType,"_",groupName,"_qqplot_iter_",reSampleNum,"_RT_",replicationTimingCutOff,"_q_threshold_",threshold,"_w_labels.pdf",sep=""),width=240,height=200,unit="mm",dpi=120)
+ggsave(paste(filePath,"/",runMethod,"_",tumorType,"_",mutationType,"_",groupName,"_qqplot_iter_",reSampleNum,"_RT_",replicationTimingCutOff,"_q_threshold_",threshold,"_w_labels.pdf",sep=""),width=240,height=200,unit="mm",dpi=120,useDingbats=FALSE)
 
 }
 
