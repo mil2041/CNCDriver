@@ -106,7 +106,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
     load(fileName)
     
     #####
-    ## load promoter bed file
+    ## load ncRNA bed file
     #####
     
     cat(sprintf("Load elementBedfile\n"))
@@ -576,7 +576,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
         
           #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
           filePath<-file.path(inputFileDir,mutationType)
-          fileName<-paste("geneDFunique_",tumorType,"_",mutationType,".Rd",sep="")
+          fileName<-paste("geneDFunique_","minPoints_",minPoints,"_dRadius_",dRadius,"_",tumorType,"_",mutationType,".Rd",sep="")
           fileName<-file.path(filePath,fileName)  
           
           if(file.exists(fileName)){
@@ -634,7 +634,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
       
       #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
       filePath<-file.path(inputFileDir,mutationType)
-      fileName<-paste("geneDFcluster_",tumorType,"_",mutationType,".Rd",sep="")
+      fileName<-paste("geneDFcluster_","minPoints_",minPoints,"_dRadius_",dRadius,"_",tumorType,"_",mutationType,".Rd",sep="")
       fileName<-file.path(filePath,fileName)  
       
       if(file.exists(fileName)){
@@ -784,7 +784,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
       
       #filePath<-file.path("~/work/Ekta_lab/cncdriver_analysis_Mar_2018/compositeDriver_input",mutationType)
       filePath<-file.path(inputFileDir,mutationType)
-      fileName<-paste("variantTriMutCategoryParsed_",tumorType,"_",mutationType,".Rd",sep="")
+      fileName<-paste("variantTriMutCategoryParsed_","minPoints_",minPoints,"_dRadius_",dRadius,"_",tumorType,"_",mutationType,".Rd",sep="")
       fileName<-file.path(filePath,fileName)  
       
       if(!file.exists(fileName)){
@@ -915,7 +915,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
       cat (sprintf ("Start calculating p-value for %s candidates\n", numOfgeneCheck) )
       
       filePath<-workDir
-      fileName<-paste("log_",mutationType,"_triMut_distribution_RT_similarity_",replicationTimingCutOff,"_task_",taskNum,"_.txt",sep="")
+      fileName<-paste("log_",mutationType,"minPoints_",minPoints,"_dRadius_",dRadius,"_","triMut_distribution_RT_similarity_",replicationTimingCutOff,"_task_",taskNum,"_.txt",sep="")
       fileName<-file.path(filePath,fileName)
       
       cat(sprintf ("progress can be look up at \n"))
@@ -1039,7 +1039,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
         
         #filePath<-file.path("~/work/Ekta_lab/JasonWong_dataset/compositeFunSeq_result_triMut_match",tumorType)
         filePath<-workDir
-        fileName<-paste("tmpOutput_",mutationType,"_triMut_distribution_RT_similarity_",replicationTimingCutOff,"_task_",taskNum,"_.txt",sep="")
+        fileName<-paste("tmpOutput_",mutationType,"minPoints_",minPoints,"_dRadius_",dRadius,"_","triMut_distribution_RT_similarity_",replicationTimingCutOff,"_task_",taskNum,"_.txt",sep="")
         fileName<-file.path(filePath,fileName)
         
         write.table(tmpResult,file=fileName,sep="\t",quote=FALSE,row.names = FALSE,col.names = FALSE,append=TRUE)        
@@ -1065,7 +1065,7 @@ getLincRNAPvalueWithPreFilter2<-function(inputFileDir,outputFileDir,
       colnames(outputDf)<-c("elementPos","numOfAlterationPos","numOfAlteration","numOfPatient","compositeDriverScore","numOfAboveCDscore","reSampleNum","pValue","qValue")
       
       
-      fileName<-paste(tumorType,"_outputDf_",mutationType,"_",groupName,"_with_RT_correction_similarity_",replicationTimingCutOff,"_triMut_match_distribution_task_",taskNum,"_iter_",reSampleNum,"_.txt",sep="")
+      fileName<-paste(tumorType,"_outputDf_",mutationType,"_",groupName,"minPoints_",minPoints,"_dRadius_",dRadius,"_","with_RT_correction_similarity_",replicationTimingCutOff,"_triMut_match_distribution_task_",taskNum,"_iter_",reSampleNum,"_.txt",sep="")
       fileName<-file.path(workDir,fileName)  
       write.table(outputDf,file=fileName,sep="\t",quote=FALSE,row.names =FALSE,col.names = TRUE)
       
