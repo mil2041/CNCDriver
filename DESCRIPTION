@@ -32,4 +32,4 @@ biocViews: Software,Network,Pathways
 VignetteBuilder: knitr
 License: MIT
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

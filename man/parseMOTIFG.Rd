@@ -18,6 +18,8 @@ motifGainParsed data frame
 Parse MOTIFBR annotations from FunSeq2
 }
 \examples{
+# TCF12_disc4[chr19:49990691-49990691#2.23] 
+# motifmodel # mutation position # motif start # motif end # motif direction # mutation position on the motif model # delta score 
 #date<-getRunDates(latest=TRUE)
 cancerType<-"KIRC"
 selectedSampleId<-NA
@@ -35,6 +37,4 @@ rareMutationFreq<-0.02
 #           keepIsolatedNodes,verbose=TRUE)
 
 }
-\concept{
-CNCDriver
-}
+\concept{CNCDriver}
