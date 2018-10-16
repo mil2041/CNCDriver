@@ -26,6 +26,7 @@
 #' @export
 #' @importFrom parallel mclapply
 #' @importFrom plyr rbind.fill
+#' @importFrom stringr str_extract_all
 
 parseNCENC<-function(dat,useCores=1){
   
@@ -44,7 +45,8 @@ parseNCENC<-function(dat,useCores=1){
   #tmp<-lapply(1:length(a0), function(x){ 
     cat(sprintf("gene:%s / %s\n",x,length(a0)))  
     
-    t3 <- strsplit(a0[[x]], "\\,")
+    #t3 <- strsplit(a0[[x]], "\\,")
+    t3 <- str_extract_all(a0[[x]],"TF[M,P]\\([a-zA-Z,0-9|_:-]*\\)",simplify=FALSE)
     
     if(!is.na(t3[[1]][1])){
       

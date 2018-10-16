@@ -249,7 +249,8 @@ getPromoterPvalue<-function(inputFileDir,outputFileDir,
     }
     
     cat(sprintf("Start parsing GENE field annotations\n"))
-    reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
+    #reducedFunseqOutputNCDS$GENEparsed<-parseFunseqGeneField(field=reducedFunseqOutputNCDS$GENE,keyword=elementKeyWord,useCores=1)
+    reducedFunseqOutputNCDS$GENEparsed<-reducedFunseqOutputNCDS$name
     
     tmpString<-strsplit(as.character(reducedFunseqOutputNCDS$NCDS),":",fixed=TRUE)
     tmpStringFrame<-data.frame(do.call("rbind",tmpString),stringsAsFactors=FALSE)
