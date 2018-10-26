@@ -1,8 +1,10 @@
 # CNCDriver
 
 [![Travis-CI Build Status](https://travis-ci.org/mil2041/CNCDriver.svg?branch=master)](https://travis-ci.org/mil2041/CNCDriver)
-
 [![Last commit ](https://img.shields.io/github/last-commit/mil2041/CNCDriver.svg)]()
+[![Repo Size ](https://img.shields.io/github/repo-size/mil2041/CNCDriver.svg)]()
+[![Repo Size ](https://img.shields.io/github/release/mil2041/CNCDriver.svg)]()
+[![License ](https://img.shields.io/github/license/mil2041/CNCDriver.svg?style=flat-square)]()
 
 ### Overview
 
@@ -113,7 +115,7 @@ For any questions, comments and suggestions, please email
 Copyright © 2016-2018 Ekta Khurana Lab, WCMC
 
 ### License 
-This project is licensed under the CC BY-NC 4.0 
-[![License: CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/80x15.png)](http://creativecommons.org/licenses/by-nc/4.0/)
+This project is licensed under the 
+[![License ](https://img.shields.io/github/license/mil2041/CNCDriver.svg?style=flat-square)]()
 
 
