@@ -1,4 +1,4 @@
-## CNCDriver
+# CNCDriver
 
 [![Travis-CI Build Status](https://travis-ci.org/mil2041/CNCDriver.svg?branch=master)](https://travis-ci.org/mil2041/CNCDriver)
 
@@ -15,7 +15,7 @@ CNCDriver combined mutation recurrence and functional impact to identify coding 
 
 
 
-### Installation
+## Installation
 User will need to install devtools in R for running CNCDriver package
 
 ```sh
@@ -24,7 +24,7 @@ library("devtools")
 devtools::install_github("khuranalab/CNCDriver")
 ```
 
-### Usage
+## Usage
 
 ```sh
 
@@ -102,7 +102,7 @@ library(CNCDriver)
 
 
 ```
-### Contacts
+## Contacts
 For any questions, comments and suggestions, please email
 
 * ekk2003 [at] med.cornell.edu 
