@@ -1,12 +1,16 @@
 ## CNCDriver
 
+[![Travis-CI Build Status](https://travis-ci.org/mil2041/CNCDriver.svg?branch=master)](https://travis-ci.org/mil2041/CNCDriver)
+
 ### Overview
+
 CNCDriver combined mutation recurrence and functional impact to identify coding and non-coding cancer drivers
 
 ### Version notes
 
-* CNCDriver (version 0.1.1) variable refacoring 
-* CNCDriver (version 0.1) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
+* CNCDriver (version 0.3.2) bugs fix
+* CNCDriver (version 0.3.1) variable refacoring 
+* CNCDriver (version 0.3) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
 
 
 
