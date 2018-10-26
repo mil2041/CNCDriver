@@ -2,6 +2,8 @@
 
 [![Travis-CI Build Status](https://travis-ci.org/mil2041/CNCDriver.svg?branch=master)](https://travis-ci.org/mil2041/CNCDriver)
 
+[![Last commit ](https://img.shields.io/github/last-commit/mil2041/CNCDriver.svg)]()
+
 ### Overview
 
 CNCDriver combined mutation recurrence and functional impact to identify coding and non-coding cancer drivers
