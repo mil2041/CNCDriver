@@ -18,7 +18,7 @@ CNCDriver combined mutation recurrence and functional impact to identify coding 
 ## Installation
 User will need to install devtools in R for running CNCDriver package
 
-```sh
+``` r
 install.packages("devtools")
 library("devtools")
 devtools::install_github("khuranalab/CNCDriver")
@@ -26,7 +26,7 @@ devtools::install_github("khuranalab/CNCDriver")
 
 ## Usage
 
-```sh
+``` r
 
 library(CNCDriver)
 
