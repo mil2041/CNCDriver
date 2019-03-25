@@ -111,7 +111,7 @@ getOpenChromatinElementPvalue<-function(inputFileDir,outputFileDir,
     #fileName<-"gencode.v19.promoter.bed"
     #fileName<-openChromatinRegionBedFile
     
-    elementBedfileName<-file.path(openChromatinRegionRegionBedFile)
+    elementBedfileName<-file.path(openChromatinRegionBedFile)
     #reducedFunseqOutput<-reducedFunseqOutputNCDS
     
     
