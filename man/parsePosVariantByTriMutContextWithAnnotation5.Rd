@@ -5,8 +5,8 @@
 \alias{parsePosVariantByTriMutContextWithAnnotation5}
 \title{Parse Pos Variant By TriMutContext With Annotation}
 \usage{
-parsePosVariantByTriMutContextWithAnnotation5(geneDFunique, mutationDistMatrix,
-  useCores = 1)
+parsePosVariantByTriMutContextWithAnnotation5(geneDFunique,
+  mutationDistMatrix, useCores = 1)
 }
 \arguments{
 \item{geneDFunique}{geneDFunique data frame}
@@ -39,6 +39,4 @@ rareMutationFreq<-0.02
 #           keepIsolatedNodes,verbose=TRUE)
 
 }
-\concept{
-CNCDriver
-}
+\concept{CNCDriver}

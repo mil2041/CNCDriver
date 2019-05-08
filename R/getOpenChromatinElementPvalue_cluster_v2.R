@@ -1011,9 +1011,10 @@ getOpenChromatinElementPvalueWithPreFilter2<-function(inputFileDir,outputFileDir
       cat(sprintf("%s\n",fileName))
       
       
-      #outputDf<-foreach(k=loopSequence, .options.RNG=seedNum, .packages=c("stringr","parallel","plyr","CNCDriver"))  %dorng% {
+      outputDf<-foreach(k=loopSequence, .options.RNG=seedNum, .packages=c("stringr","parallel","plyr","CNCDriver"))  %dorng% {
         #outputDf<-foreach(k=1:numOfgeneCheck, .options.RNG=seedNum, .packages=c("FNN","stringr","parallel","plyr"))  %dorng% {
-        for(k in 1:numOfgeneCheck){ 
+        
+        #for(k in 1:numOfgeneCheck){ 
         #filePath<-file.path("~/work/Ekta_lab/JasonWong_dataset/compositeFunSeq_result_triMut_match",tumorType)
         filePath<-workDir
         fileName<-paste("log_",mutationType,"_minPoints_",minPoints,"_dRadius_",dRadius,"_","triMut_distribution_RT_similarity_",replicationTimingCutOff,"_task_",taskNum,"_.txt",sep="")
@@ -1150,7 +1151,7 @@ getOpenChromatinElementPvalueWithPreFilter2<-function(inputFileDir,outputFileDir
         
         
         
-        #return(tmpResult)
+        return(tmpResult)
       }
           
       stopCluster(cl)

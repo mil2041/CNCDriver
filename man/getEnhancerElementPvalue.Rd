@@ -4,12 +4,13 @@
 \alias{getEnhancerElementPvalue}
 \title{Run CNCDriver enhancer element p-value calculation}
 \usage{
-getEnhancerElementPvalue(inputFileDir, outputFileDir, enhancerRegionBedFile,
-  elementKeyWord = "Distal", triNucleotideDistributionFile,
-  filterOutBlacklistMutations, mutationBlacklistFile,
-  replicationTimingGenomeBinnedFile, replicationTimingElementBinnedFile,
-  tumorType, mutationType, cellType, replicationTimingCutOff, seedNum = 42,
-  reSampleIterations, reRunPvalueCutOff = 0.1, useCores, taskNum, unitSize,
+getEnhancerElementPvalue(inputFileDir, outputFileDir,
+  enhancerRegionBedFile, elementKeyWord = "Distal",
+  triNucleotideDistributionFile, filterOutBlacklistMutations,
+  mutationBlacklistFile, replicationTimingGenomeBinnedFile,
+  replicationTimingElementBinnedFile, tumorType, mutationType, cellType,
+  replicationTimingCutOff, seedNum = 42, reSampleIterations,
+  reRunPvalueCutOff = 0.1, useCores, taskNum, unitSize,
   debugMode = FALSE)
 }
 \arguments{
@@ -77,6 +78,4 @@ rareMutationFreq<-0.02
 #           keepIsolatedNodes,verbose=TRUE)
 
 }
-\concept{
-CNCDriver
-}
+\concept{CNCDriver}
