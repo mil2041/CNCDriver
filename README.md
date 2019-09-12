@@ -6,6 +6,10 @@
 [![Repo Size ](https://img.shields.io/github/release/mil2041/CNCDriver.svg)]()
 [![License ](https://img.shields.io/github/license/mil2041/CNCDriver.svg?style=flat-square)]()
 
+### Referneces
+
+* Eric Minwei Liu, Alexander Martinez Fundichely, Bianca Jay Diaz, Boaz Aronson, Tawny Cuykendall, Matthew MacKay, Priyanka Dhingra, Elissa WP Wong, Ping Chi, Effie Apostolou, Neville E Sanjana, Ekta Khurana [“Identification of Cancer Drivers at CTCF Insulators in 1,962 Whole Genomes”](https://www.ncbi.nlm.nih.gov/pubmed/31078526), Cell Systems, 8,4460455. e8 (2019)
+
 ### Overview
 
 CNCDriver combined mutation recurrence and functional impact to identify coding and non-coding cancer drivers
