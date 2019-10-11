@@ -16,7 +16,7 @@ CNCDriver combined mutation recurrence and functional impact to identify coding 
 
 ### Version notes
 
-* Oct/10/2019 CNCDriver (version 0.3.3) add tutorial
+* CNCDriver (version 0.3.3) add tutorial, Oct-10-2019
 * CNCDriver (version 0.3.2) bugs fix
 * CNCDriver (version 0.3.1) variable refacoring 
 * CNCDriver (version 0.3) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
