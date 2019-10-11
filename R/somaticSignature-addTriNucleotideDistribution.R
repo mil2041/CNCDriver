@@ -71,7 +71,8 @@ addTriNucleotideDistribution<-function(dat){
     seqinfo = seqinfo(sca_gr),
     study = mcols(sca_gr)$study)
 
-  # converting the seqnames notation to ’UCSC’ 
+  # convert to ucsc style
+  
   sca_vr = ucsc(sca_vr)
 
   #sca_vr

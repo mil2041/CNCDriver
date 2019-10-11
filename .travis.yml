@@ -1,5 +1,57 @@
-# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
-
-language: R
-sudo: false
+#----------------------------------------------------------------
+# Travis-CI configuration for Bioconductor packages
+#
+# REFERENCES:
+# * Travis CI: https://travis-ci.org/
+# * tutorial: https://docs.travis-ci.com/user/languages/r
+# * see also: https://blog.rstudio.org/2016/03/09/r-on-travis-ci/
+# * covr: https://github.com/jimhester/covr
+# * Coveralls: https://coveralls.io/
+#
+# Validate your .travis.yml file at http://lint.travis-ci.org/
+#----------------------------------------------------------------
+language: r
 cache: packages
+warnings_are_errors: true
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
+
+# define cache warmup and test stages
+jobs:
+  include:
+    - stage: prepare cache
+      r: bioc-release
+      script:
+        - echo No R CMD check since this is a cache warmup
+      after_success:
+        - echo No codecov / biocheck since this is a cache warmup
+    - stage: prepare cache
+      r: bioc-devel
+      script:
+        - echo No R CMD check since this is a cache warmup
+      after_success:
+        - echo No codecov / biocheck since this is a cache warmup
+    - stage: test
+      r: bioc-release
+    - stage: test
+      r: bioc-devel
+
+# can we remove this, maybe?
+#r_build_args: "--no-build-vignettes"
+#r_check_args: "--no-vignettes"
+
+## install and upgrade dependencies
+install:
+  - R -e 'if ("devtools" %in% rownames(installed.packages())) update.packages(oldPkgs = "devtools", ask = FALSE) else install.packages("devtools")'
+  - R -e 'devtools::install_cran("covr")'
+  - R -e 'devtools::install_bioc("BiocCheck")'
+  - R -e 'setRepositories(ind = 1:2); devtools::install(dependencies = TRUE, upgrade = TRUE)'
+
+## Run code coverage after successful build
+after_success:
+  - Rscript -e 'covr::coveralls()'
+  - R CMD BiocCheck --no-check-bioc-help .
+  - Rscript -e 'covr::codecov()'

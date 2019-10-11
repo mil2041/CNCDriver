@@ -1,0 +1,72 @@
+---
+title: "CNCDriver Tutorial"
+author:
+- name: Eric Minwei Liu
+  affiliation: Weill Cornell Medicine, New York, NY, USA
+output:
+  pdf_document:
+    toc: yes
+  BiocStyle::html_document:
+    toc: yes
+    toc_float: no
+  html_document:
+    toc: yes
+  md_document:
+    toc: yes
+    variant: markdown_github
+  html_notebook: default
+  vignette: |
+    %\VignetteIndexEntry{CNCDriver Tutorial}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
+---
+
+
+```{r knitrSetup, include=FALSE}
+library(knitr)
+opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center", fig.width=12, fig.height=12, tidy=TRUE)
+```
+
+```{r style, include=FALSE, echo=FALSE, results='asis'}
+BiocStyle::markdown()
+```
+
+# Overview
+
+The **CNCDriver** package composes a number of functions to retrive and process 
+genetic data from large-scale genomics projects (e.g. TCGA projects) including 
+from mutations, copy number alterations, gene expression and DNA methylation. 
+The netboxr package implements NetBox algorithm in R package. NetBox algorithm 
+integrates genetic alterations with literature-curated pathway knowledge to 
+identify pathway modules in cancer. NetBox algorithm uses (1) global network 
+null model and (2) local network null model to access the statistic significance 
+of the discovered pathway modules.
+
+# Basics
+## Installation
+
+```{r installCNCDriver, eval=FALSE}
+library(remotes)
+install_github(repo="mil2041/CNCDriver", ref="master", build_vignette=TRUE)
+```
+
+## Getting Started
+
+Load **netboxr** package: 
+
+```{r loadLibrary, message=FALSE, warning=FALSE}
+library(CNCDriver)
+```
+
+A list of all accessible vignettes and methods is available with the following command: 
+
+```{r searchHelp, eval=FALSE, tidy=FALSE}
+help.search("CNCDriver")
+```
+
+For help on any **netboxr** package functions, use one of the following command formats:
+
+```{r showHelp, eval=FALSE, tidy=FALSE}
+help(geneConnector)
+?geneConnector
+```

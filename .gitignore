@@ -2,4 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+CNCDriver.Rproj
+precommit.log
 packrat/lib*/
+doc
+Meta

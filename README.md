@@ -16,6 +16,7 @@ CNCDriver combined mutation recurrence and functional impact to identify coding 
 
 ### Version notes
 
+* Oct/10/2019 CNCDriver (version 0.3.3) add tutorial
 * CNCDriver (version 0.3.2) bugs fix
 * CNCDriver (version 0.3.1) variable refacoring 
 * CNCDriver (version 0.3) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
@@ -27,9 +28,8 @@ CNCDriver combined mutation recurrence and functional impact to identify coding 
 User will need to install devtools in R for running CNCDriver package
 
 ``` r
-install.packages("devtools")
-library("devtools")
-devtools::install_github("khuranalab/CNCDriver")
+library("remotes")
+remotes::install_github("khuranalab/CNCDriver", ref="master", build_vignette=TRUE)
 ```
 
 ## Usage

@@ -1,8 +1,9 @@
 Package: CNCDriver
 Type: Package
 Title: CNCDriver
-Version: 0.1.2
-Author: Eric Minwei Liu [aut,cre], Priyanka Dhingra [aut]
+Version: 0.3.3
+Date: 2019-10-10
+Author: Eric Minwei Liu [aut,cre]
 Maintainer: Eric Minwei Liu <emliu.research@gmail.com>
 Description: CNCDriver
 Imports: jsonlite
@@ -30,6 +31,7 @@ Suggests:
 SystemRequirements: Java (>= 1.5)
 biocViews: Software,Network,Pathways
 VignetteBuilder: knitr
+Encoding: UTF-8
 License: MIT
 LazyData: TRUE
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
