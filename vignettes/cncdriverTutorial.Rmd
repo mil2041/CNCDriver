@@ -67,6 +67,7 @@ help.search("CNCDriver")
 For help on any **netboxr** package functions, use one of the following command formats:
 
 ```{r showHelp, eval=FALSE, tidy=FALSE}
+# ftp://ftp.sanger.ac.uk/pub/cancer/AlexandrovEtAl
 help(geneConnector)
 ?geneConnector
 ```
