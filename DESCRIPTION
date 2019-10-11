@@ -32,6 +32,6 @@ SystemRequirements: Java (>= 1.5)
 biocViews: Software,Network,Pathways
 VignetteBuilder: knitr
 Encoding: UTF-8
-License: MIT
+License: MIT + file LICENSE
 LazyData: TRUE
 RoxygenNote: 6.1.1

@@ -3,22 +3,16 @@ title: "CNCDriver Tutorial"
 author:
 - name: Eric Minwei Liu
   affiliation: Weill Cornell Medicine, New York, NY, USA
+date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    toc: yes
   BiocStyle::html_document:
     toc: yes
     toc_float: no
-  html_document:
-    toc: yes
-  md_document:
-    toc: yes
-    variant: markdown_github
-  html_notebook: default
-  vignette: |
-    %\VignetteIndexEntry{CNCDriver Tutorial}
-    %\VignetteEncoding{UTF-8}
-    %\VignetteEngine{knitr::rmarkdown}
+  BiocStyle::pdf_document: default
+vignette: |
+  %\VignetteIndexEntry{CNCDriver Tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 
