@@ -1,15 +1,16 @@
 Package: CNCDriver
 Type: Package
 Title: CNCDriver
-Version: 0.3.3
-Date: 2019-10-10
+Version: 0.3.4
+Date: 2019-10-14
 Author: Eric Minwei Liu [aut,cre]
 Maintainer: Eric Minwei Liu <emliu.research@gmail.com>
 Description: CNCDriver
 Imports: jsonlite
 Depends:
-    R (>= 3.2.0),
+    R (>= 3.6.0),
     ggplot2,
+    ggrepel,
     GenomicRanges,
     IRanges,
     SomaticSignatures,

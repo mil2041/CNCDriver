@@ -3,6 +3,8 @@ title: "CNCDriver Tutorial"
 author:
 - name: Eric Minwei Liu
   affiliation: Weill Cornell Medicine, New York, NY, USA
+- name: Ekta Khurana
+  affiliation: Weill Cornell Medicine, New York, NY, USA
 date: "`r Sys.Date()`"
 output:
   BiocStyle::html_document:
@@ -27,14 +29,8 @@ BiocStyle::markdown()
 
 # Overview
 
-The **CNCDriver** package composes a number of functions to retrive and process 
-genetic data from large-scale genomics projects (e.g. TCGA projects) including 
-from mutations, copy number alterations, gene expression and DNA methylation. 
-The netboxr package implements NetBox algorithm in R package. NetBox algorithm 
-integrates genetic alterations with literature-curated pathway knowledge to 
-identify pathway modules in cancer. NetBox algorithm uses (1) global network 
-null model and (2) local network null model to access the statistic significance 
-of the discovered pathway modules.
+The **CNCDriver** combined mutation recurrence and functional impact to identify
+coding and non-coding cancer drivers
 
 # Basics
 ## Installation
@@ -46,7 +42,7 @@ install_github(repo="mil2041/CNCDriver", ref="master", build_vignette=TRUE)
 
 ## Getting Started
 
-Load **netboxr** package: 
+Load **CNCDriver** package: 
 
 ```{r loadLibrary, message=FALSE, warning=FALSE}
 library(CNCDriver)
@@ -58,10 +54,37 @@ A list of all accessible vignettes and methods is available with the following c
 help.search("CNCDriver")
 ```
 
-For help on any **netboxr** package functions, use one of the following command formats:
+For help on any **CNCDriver** package functions, use one of the following command formats:
 
 ```{r showHelp, eval=FALSE, tidy=FALSE}
-# ftp://ftp.sanger.ac.uk/pub/cancer/AlexandrovEtAl
-help(geneConnector)
-?geneConnector
+
+help(getCDSPvalue)
+?getCDSPvalue
 ```
+
+## Load FunSeq2 annotations of WGS SNV mutation calls in LGG. 
+
+Load pre-parsed FunSeq2 annotations of WGS SNV mutation calls in BRCA.
+The whole genome sequencing SNV mutation calls in BRCA are from Fredriksson et al. Nature Genetics 2015. WGS SNV data is available at 
+
+```{r netboxrExampleNetwork}
+# Load pre-parsed FunSeq2 annotations for SNV mutation calls in LGG.
+data("reducedFunseqOutputCDS")
+data("reducedFunseqOutputNCDS")
+```
+
+
+
+
+
+# References
+
+* Eric Minwei Liu, Alexander Martinez Fundichely, Bianca Jay Diaz, Boaz Aronson, Tawny Cuykendall, Matthew MacKay, Priyanka Dhingra, Elissa WP Wong, Ping Chi, Effie Apostolou, Neville E Sanjana, Ekta Khurana “Identification of Cancer Drivers at CTCF Insulators in 1,962 Whole Genomes”, Cell Systems, 8,4460455. e8 (2019)
+
+# Session Information
+
+```{r sessionInfo}
+sessionInfo()
+```
+
+
