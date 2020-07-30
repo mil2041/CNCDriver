@@ -1,8 +1,8 @@
 Package: CNCDriver
 Type: Package
 Title: CNCDriver
-Version: 0.3.4
-Date: 2019-10-14
+Version: 0.3.5
+Date: 2020-07-30
 Author: Eric Minwei Liu [aut,cre]
 Maintainer: Eric Minwei Liu <emliu.research@gmail.com>
 Description: CNCDriver
