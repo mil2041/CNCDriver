@@ -5,8 +5,7 @@
 \alias{mergeVariantPositionClusterEnhancerUnitV2}
 \title{mergeVariantPositionClusterEnhancerUnitV2}
 \usage{
-mergeVariantPositionClusterEnhancerUnitV2(datDF, sizeFactor,
-  countsCutOff = 2)
+mergeVariantPositionClusterEnhancerUnitV2(datDF, sizeFactor, countsCutOff = 2)
 }
 \arguments{
 \item{datDF}{list of geneDF data frame}

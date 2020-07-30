@@ -37,7 +37,7 @@ coding and non-coding cancer drivers
 
 ```{r installCNCDriver, eval=FALSE}
 library(remotes)
-install_github(repo="mil2041/CNCDriver", ref="master", build_vignette=TRUE)
+install_github(repo="khuranalab/CNCDriver", ref="master", build_vignette=TRUE)
 ```
 
 ## Getting Started

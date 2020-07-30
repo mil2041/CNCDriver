@@ -4,14 +4,30 @@
 \alias{getPromoterPvalueWithPreFilter2}
 \title{Run CNCDriver promoter p-value calculation with mutation pre-filtering}
 \usage{
-getPromoterPvalueWithPreFilter2(inputFileDir, outputFileDir,
-  promoterRegionBedFile, elementKeyWord = "Promoter", minPoints = 2,
-  dRadius = 50, triNucleotideDistributionFile,
-  filterOutBlacklistMutations, mutationBlacklistFile,
-  replicationTimingGenomeBinnedFile, replicationTimingElementBinnedFile,
-  tumorType, mutationType, cellType, replicationTimingCutOff,
-  seedNum = 42, reSampleIterations, reRunPvalueCutOff = 0.1,
-  useCores = 1, taskNum = 0, unitSize, debugMode = FALSE)
+getPromoterPvalueWithPreFilter2(
+  inputFileDir,
+  outputFileDir,
+  promoterRegionBedFile,
+  elementKeyWord = "Promoter",
+  minPoints = 2,
+  dRadius = 50,
+  triNucleotideDistributionFile,
+  filterOutBlacklistMutations,
+  mutationBlacklistFile,
+  replicationTimingGenomeBinnedFile,
+  replicationTimingElementBinnedFile,
+  tumorType,
+  mutationType,
+  cellType,
+  replicationTimingCutOff,
+  seedNum = 42,
+  reSampleIterations,
+  reRunPvalueCutOff = 0.1,
+  useCores = 1,
+  taskNum = 0,
+  unitSize,
+  debugMode = FALSE
+)
 }
 \arguments{
 \item{inputFileDir}{The path for prepared R object file [for example,reducedFunseqOutputNCDS_GBM.Rd]}

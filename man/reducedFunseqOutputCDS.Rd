@@ -4,7 +4,9 @@
 \name{reducedFunseqOutputCDS}
 \alias{reducedFunseqOutputCDS}
 \title{reduced funseq2 CDS output for LGG}
-\format{A data frame with 18 rows and 3 variables}
+\format{
+A data frame with 18 rows and 3 variables
+}
 \usage{
 reducedFunseqOutputCDS
 }

@@ -5,8 +5,11 @@
 \alias{parsePosVariantByTriMutContextWithAnnotationCDS}
 \title{Parse Pos Variant By TriMutContext With Annotation for protein coding region}
 \usage{
-parsePosVariantByTriMutContextWithAnnotationCDS(geneDFunique,
-  mutationDistMatrix, useCores = 1)
+parsePosVariantByTriMutContextWithAnnotationCDS(
+  geneDFunique,
+  mutationDistMatrix,
+  useCores = 1
+)
 }
 \arguments{
 \item{geneDFunique}{geneDFunique data frame}

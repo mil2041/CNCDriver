@@ -5,8 +5,7 @@
 \alias{makeElementReplicationTiming}
 \title{Make replication timing signal value for each regulatory element}
 \usage{
-makeElementReplicationTiming(replicationTimingDF, elementDF,
-  useCores = 1)
+makeElementReplicationTiming(replicationTimingDF, elementDF, useCores = 1)
 }
 \arguments{
 \item{replicationTimingDF}{replicationTimingDF data frame}

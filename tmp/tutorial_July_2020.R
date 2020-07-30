@@ -1,70 +1,117 @@
-# CNCDriver
-
-[![Travis-CI Build Status](https://travis-ci.org/mil2041/CNCDriver.svg?branch=master)](https://travis-ci.org/mil2041/CNCDriver)
-[![Last commit ](https://img.shields.io/github/last-commit/mil2041/CNCDriver.svg)]()
-[![Repo Size ](https://img.shields.io/github/repo-size/mil2041/CNCDriver.svg)]()
-[![Repo Size ](https://img.shields.io/github/release/mil2041/CNCDriver.svg)]()
-[![License ](https://img.shields.io/github/license/mil2041/CNCDriver.svg?style=flat-square)]()
-
-### References
-
-* Eric Minwei Liu, Alexander Martinez Fundichely, Bianca Jay Diaz, Boaz Aronson, Tawny Cuykendall, Matthew MacKay, Priyanka Dhingra, Elissa WP Wong, Ping Chi, Effie Apostolou, Neville E Sanjana, Ekta Khurana [“Identification of Cancer Drivers at CTCF Insulators in 1,962 Whole Genomes”](https://www.ncbi.nlm.nih.gov/pubmed/31078526), Cell Systems, 8,4460455. e8 (2019)
-
-### Overview
-
-CNCDriver combined mutation recurrence and functional impact to identify coding and non-coding cancer drivers
-
-### Version notes
-
-* CNCDriver (version 0.3.3) add tutorial, Oct-10-2019
-* CNCDriver (version 0.3.2) bugs fix
-* CNCDriver (version 0.3.1) variable refacoring 
-* CNCDriver (version 0.3) supports SNV coding drivers, promoter, enhancer, lincRNA and CTCF/cohesin insulator   
-
-
-
-
-## Installation
-User will need to install devtools in R for running CNCDriver package
-
-``` r
 library("remotes")
 remotes::install_github("khuranalab/CNCDriver", ref="master", build_vignette=TRUE)
-```
-
-## Usage
-
-``` r
 
 library(CNCDriver)
 
 #####
-# global parameters setup
+# change the path for the parsed Funseq results as input for CNCDriver
 #####
 
-  funseq2OutFile<-"path/to/funseq2/annotatedfile"
+# input files
+inputFileDir<-"/Users/mil20411/work/Ekta_lab/Eric_et_al_Cell_Systems_2019_example/parsed_FunSeq2_result_example"
 
-  replicationTimingCutOff<-0.2
-  filterOutBlacklistMutations<-TRUE
+# output files
+outputFileDir<-"/Users/mil20411/work/Ekta_lab/Eric_et_al_Cell_Systems_2019_example/cncdriver_analysis_cluster_example_July_2020"
 
-  seedNum<-42
-  reSampleIterations<-10000
-  reRunPvalueCutOff<-0.1
+# required pre-processed additional information
+cncdriver_data_Dir<-"/Users/mil20411/work/Ekta_lab/Eric_et_al_Cell_Systems_2019_example/CNCDriver_data"
 
-  minPoints<-2
-  dRadius<-50
+###
 
-  useCores<-4
-  debugMode<-FALSE
+triNucleotideDistributionFile<-file.path(cncdriver_data_Dir,"triNucleotidedistribution/compositeDriver_mutationDistributionMatrix_all_kmer_3_counts_Mar_2018_v0.txt")
+mutationBlacklistFile<-file.path(cncdriver_data_Dir,"genome_blacklist/wgEncodeDacMapabilityConsensusExcludable.bed")
+replicationTimingGenomeBinnedFile<-file.path(cncdriver_data_Dir,"replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows.txt")
 
-  taskNum<-0
-  unitSize<-100
+###
+
+codingRegionBedFile<-file.path(cncdriver_data_Dir,"FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode/gencode.v19.cds.bed")
+proteinDomainFile<-file.path(cncdriver_data_Dir,"cds_data/domainData/pfam28.9606.processed_w_eValue_cutOff.txt")
+proteinLengthFile<-file.path(cncdriver_data_Dir,"ensembl_hg37/hg37_ensembl_txCDSwithProteinLength.txt")
+replicationTimingElementBinnedFileCDS<-file.path(cncdriver_data_Dir,"replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_cds.txt")
+
+###
+
+promoterRegionBedFile<-file.path(cncdriver_data_Dir,"FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode/gencode.v19.promoter.bed")
+replicationTimingElementBinnedFilePromoter<-file.path(cncdriver_data_Dir,"replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_promoter.txt")
+
+###
+
+lincRNARegionBedFile<-file.path(cncdriver_data_Dir,"FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/gencode/gencode.v19.lincRNA.bed")
+replicationTimingElementBinnedFileLincRNA<-file.path(cncdriver_data_Dir,"replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_lincrna.txt")
+
+###
+
+enhancerRegionBedFile<-file.path(cncdriver_data_Dir,"FunSeq2_compositeDriver_SEP_2017/data_context_SEP_2017/drm_FunSeq2.gene.bed")
+replicationTimingElementBinnedFileEnhancer<-file.path(cncdriver_data_Dir,"replication_timing/UW/processed/UW_RepliSeq_wavelet_1Mb_windows_enhancer_May17_2018.txt")
+
+
+###########
+# load cancer information (name, cohort size, and replication time cell line)
+###########
+
+filePath<-"/Users/mil20411/work/Ekta_lab/Eric_et_al_Cell_Systems_2019_example"
+fileName<-"cancer_type_info.txt"
+fileName<-file.path(filePath,fileName)
+
+cancer_info<-read.table(fileName,sep="\t",header=TRUE)
+
+# only run GBM cancer in this example
+cancer_info<-cancer_info[cancer_info$histologyName %in% "GBM",]
+
+
+tumorTypeList<-cancer_info$histologyName
+cellTypeList<-cancer_info$cellLineRTtype
 
 
 #####
+# Global parameters setup section
+#####
+# Default parameter settings
+#####
 
+replicationTimingCutOff<-0.2
+filterOutBlacklistMutations<-TRUE
+
+seedNum<-42
+reSampleIterations<-10000
+reRunPvalueCutOff<-0.1
+
+minPoints<-2
+dRadius<-50
+
+useCores<-4
+debugMode<-FALSE
+
+taskNum<-0
+unitSize<-100
+
+
+
+######
+
+for(i in 1:length(tumorTypeList)){
+
+  
+  tumorType<-tumorTypeList[i]
+  cellType<-cellTypeList[i]   
+
+ 
+#####
+
+# deprecated   
+# preProcessVCF(annotatedInput,functionalImpactScoreCDS,functionalImpactScoreNonCoding,outputDir,tumorType,useCores)
+
+#####
+
+
+  
+if(TRUE){
+  
     mutationType<-"cds_cluster"
     elementKeyWord<-"CDS"
+    
+    #minPoints<-2
+    #dRadius<-50
     
     cdsOutputDf<-getCDSPvalueWithPreFilter2(inputFileDir,outputFileDir,
                                            codingRegionBedFile,elementKeyWord,
@@ -83,8 +130,10 @@ library(CNCDriver)
     
     makeQQplot(cdsOutputDf)
 
-#####
+}
 
+if(TRUE){
+  
     mutationType<-"promoter_cluster"
     elementKeyWord<-"Promoter"
     
@@ -104,8 +153,10 @@ library(CNCDriver)
     
     makeQQplot(promoterOutputDf)
 
+}
 
-#####
+  
+if(TRUE){
     
     mutationType<-"lincRNA_cluster"
     elementKeyWord<-"lincRNA"
@@ -127,14 +178,18 @@ library(CNCDriver)
     
     makeQQplot(lincRNAOutputDf)
 
+
+}
   
 
 #####
 
-    mutationType<-"enhancerUnit_cluster"
-    elementKeyWord<-"Distal"
+if(TRUE){  
   
-    enhancerUnitOutputDf<-getEnhancerUnitPvalueWithPreFilter2(inputFileDir,
+  mutationType<-"enhancerUnit_cluster"
+  elementKeyWord<-"Distal"
+  
+  enhancerUnitOutputDf<-getEnhancerUnitPvalueWithPreFilter2(inputFileDir,
                                                             outputFileDir,
                                               enhancerRegionBedFile,
                                               elementKeyWord,
@@ -152,22 +207,12 @@ library(CNCDriver)
                                               debugMode)
   
   
-     makeQQplot(enhancerUnitOutputDf)
-     
-#####
+  makeQQplot(enhancerUnitOutputDf)
 
 
-```
-## Contacts
-For any questions, comments and suggestions, please email
+}
 
-* ekk2003 [at] med.cornell.edu 
-* mil2041 [at] med.cornell.edu
 
-Copyright © 2016-2019 Ekta Khurana Lab, WCMC
 
-### License 
-This project is licensed under the 
-[![License ](https://img.shields.io/github/license/mil2041/CNCDriver.svg?style=flat-square)]()
-
+}
 

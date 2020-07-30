@@ -4,8 +4,11 @@
 \alias{addReplicationTimingSignal}
 \title{Add replication timing signal value}
 \usage{
-addReplicationTimingSignal(reducedFunseqOutput, replicationTimingDF,
-  useCores = 1)
+addReplicationTimingSignal(
+  reducedFunseqOutput,
+  replicationTimingDF,
+  useCores = 1
+)
 }
 \arguments{
 \item{reducedFunseqOutput}{reducedFunseqOutput data frame}

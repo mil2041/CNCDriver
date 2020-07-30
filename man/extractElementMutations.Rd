@@ -4,8 +4,7 @@
 \alias{extractElementMutations}
 \title{Extract overlapping mutations from element annotation bed file}
 \usage{
-extractElementMutations(elementBedfile, reducedFunseqOutput,
-  debugMode = FALSE)
+extractElementMutations(elementBedfile, reducedFunseqOutput, debugMode = FALSE)
 }
 \arguments{
 \item{elementBedfile}{The data frame for element annotated bed file}

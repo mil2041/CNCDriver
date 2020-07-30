@@ -5,10 +5,17 @@
 \alias{calculatePvalueWithMutCategoryDistributionMatched7}
 \title{calculate Pvalue With Mut CategoryDistribution Matched}
 \usage{
-calculatePvalueWithMutCategoryDistributionMatched7(variantTriMutCategory,
-  backgroundPosVariant, mutationDistMatrix, featureDF, reSampleNum,
-  replaceFlag = FALSE, replicationTimingCutOff, debugFileName,
-  debugMode = FALSE)
+calculatePvalueWithMutCategoryDistributionMatched7(
+  variantTriMutCategory,
+  backgroundPosVariant,
+  mutationDistMatrix,
+  featureDF,
+  reSampleNum,
+  replaceFlag = FALSE,
+  replicationTimingCutOff,
+  debugFileName,
+  debugMode = FALSE
+)
 }
 \arguments{
 \item{variantTriMutCategory}{variantTriMutCategory data frame}

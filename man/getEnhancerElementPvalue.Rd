@@ -4,14 +4,28 @@
 \alias{getEnhancerElementPvalue}
 \title{Run CNCDriver enhancer element p-value calculation}
 \usage{
-getEnhancerElementPvalue(inputFileDir, outputFileDir,
-  enhancerRegionBedFile, elementKeyWord = "Distal",
-  triNucleotideDistributionFile, filterOutBlacklistMutations,
-  mutationBlacklistFile, replicationTimingGenomeBinnedFile,
-  replicationTimingElementBinnedFile, tumorType, mutationType, cellType,
-  replicationTimingCutOff, seedNum = 42, reSampleIterations,
-  reRunPvalueCutOff = 0.1, useCores, taskNum, unitSize,
-  debugMode = FALSE)
+getEnhancerElementPvalue(
+  inputFileDir,
+  outputFileDir,
+  enhancerRegionBedFile,
+  elementKeyWord = "Distal",
+  triNucleotideDistributionFile,
+  filterOutBlacklistMutations,
+  mutationBlacklistFile,
+  replicationTimingGenomeBinnedFile,
+  replicationTimingElementBinnedFile,
+  tumorType,
+  mutationType,
+  cellType,
+  replicationTimingCutOff,
+  seedNum = 42,
+  reSampleIterations,
+  reRunPvalueCutOff = 0.1,
+  useCores,
+  taskNum,
+  unitSize,
+  debugMode = FALSE
+)
 }
 \arguments{
 \item{inputFileDir}{The path for prepared R object file [for example,reducedFunseqOutputNCDS_GBM.Rd]}
